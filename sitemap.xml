@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://andreacremese.github.io/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/</loc>
+    
+    <lastmod>2017-06-09T04:26:26.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://andreacremese.github.io/about/index.html</loc>
     
     <lastmod>2017-06-09T00:36:45.000Z</lastmod>
@@ -12,13 +19,6 @@
     <loc>http://andreacremese.github.io/pics/index.html</loc>
     
     <lastmod>2017-06-09T00:28:01.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/</loc>
-    
-    <lastmod>2017-06-09T00:27:40.000Z</lastmod>
     
   </url>
   

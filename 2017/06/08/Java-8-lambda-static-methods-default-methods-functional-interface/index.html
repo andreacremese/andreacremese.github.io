@@ -109,6 +109,12 @@ Function&lt;Person, Integer&gt; f = person -&gt; person.GetAge ();
 
 // method reference
 Function&lt;Person, Integer&gt; f = Person::GetAge ;
+</code></pre><p>This works as well for methods with two parameters. For example, the following is equivalent:</p>
+<pre><code>BinaryOperator&lt;Integer&gt; myOperator = (a, b) -&gt; Integer.max(a,b);
+
+// is the same as
+
+BinaryOperator&lt;Integer&gt; myOperator = Integer::max;
 </code></pre><h2 id="Wrapping-up"><a href="#Wrapping-up" class="headerlink" title="Wrapping up"></a>Wrapping up</h2><p>An example of a functional interface, with default AND static methods.</p>
 <pre><code>@FunctionalInterface
 public interface MyPredicate&lt;T&gt; {
