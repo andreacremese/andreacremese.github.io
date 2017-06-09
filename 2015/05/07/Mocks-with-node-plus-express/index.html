@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Mocks with Node + Express</h1><p class="post-meta">Posted on May 7 2015 · <a href="/tags/JS/" class="tag post-meta">JS</a> · <a href="/tags/node/" class="tag post-meta">node</a> · <a href="/tags/express/" class="tag post-meta">express</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>When developing apps with RESTful APIs interfaces there is often the need to setup a quick and temporary Mock site that would return some pre canned Json depending to a the request made.</p>
+<p>While there are many sites around that allow you to do exactly that (APIary is one that jumps to mind right now), in many cases these only allow a static one-to-one correlation between request and responses.  In other words, the behavior is usually: “when I send this reply with that”, so on and so forth. </p>
+<p>While this is great for documentations, in some (many) cases during development there is a need to <strong>return different responses to the same request</strong>. This may to test different business scenarios, simulating systems down, and so on and so forth.</p>
+<p>There are many way to achieve this, one that I personally like is to leverage Node + Express. Note that following server is fully functional but it is <strong>for demo only</strong>.</p>
+<pre><code>        var express = require(&#39;express&#39;);
+        var morgan = require(&#39;morgan&#39;);
+        var bodyParser = require(&#39;body-parser&#39;);
+        var cors = require(&#39;cors&#39;);
+        var fs = require(&#39;fs&#39;);            
+
+
+        var app = express();
+        var port = process.env.PORT || 3000;            
+
+        var jsonParser = bodyParser.json({ type: &#39;application/*+json&#39; });            
+
+        app
+            .use(cors())
+            .use(jsonParser)
+            .use(bodyParser.json())
+            .listen(port);                    
+
+        app.post(&#39;/api/mockedrequest&#39;, function (req, res) { handleRequest(req, res); });
+        app.post(&#39;/api/overrideResponse&#39;, function (req, res) { overrideResponse(req, res); });            
+
+
+
+        // Mappings requests =&gt; replies 
+        // Should go in a config module, really
+        var TestCasesMappings = {
+            &quot;Account1&quot;: { code : 200, responsefile : &quot;./TestData/TestCase1.Response.json&quot; },
+            &quot;Account2&quot;: { code : 200, responsefile : &quot;./TestData/TestCase2.Response.json&quot; }, 
+            &quot;Account3&quot;: { code : 200, responsefile : &quot;./TestData/TestCase3.Response.json&quot; },
+            &quot;Account4&quot;: { code : 400, responsefile : &quot;./TestData/BadRequest.Response.json&quot; },
+            &quot;Account5&quot;: { code : 503, responsefile : &quot;./TestData/Unavailable.Response.json&quot; },  
+            Default: { code : 200, responsefile : &quot;./TestData/TestCase1.Response.json&quot; }
+        };    
+
+
+        // API behavior
+        // Sould go in an API module, really
+        var ResponseOverriddenAccount;            
+
+        var handleRequest = function (req, res) {
+            if (ResponseOverriddenAccount != null){
+                var required_response = (ResponseOverriddenAccount in TestCasesMappingsMapping ) ? ResponseOverriddenAccount : &quot;Default&quot;; 
+            } else {
+                var required_response = (req.body.Account in TestCasesMappings ) ? req.body.Account : &quot;Default&quot;; 
+            }
+            var response_code =  (TestCasesMappings[required_response]).code;
+            var filepath = TestCasesMappings[required_response].responsefile;
+            var message = JSON.parse(fs.readFileSync( filepath , &#39;utf8&#39;));
+            res.send(response_code, message );
+        };            
+
+        var overrideResponse = function (req,res) {
+            if (&quot;Account&quot; in req.body){
+                ResponseOverriddenAccount = (req.body.Account in TestCasesMappings) ? req.body.Account : null;      
+            }
+            var msg = (ResponseOverriddenAccount == null) ? &quot;Default behavior re instated&quot; : &quot;Response now switched to  &quot; + ResponseOverriddenAccount + &quot; for all requests&quot;;
+            res.send(200, msg);
+        }      
+</code></pre><p>In the code sample there is one mapping literal that maps request to response with an Account key in the request (so far, easy). This means that a request to the <code>/api/mocked</code> end point with a payload “Account” : “Account1” will be responded with the json TestCase1, mapped as per the literal <strong>TestCasesMapping</strong>.</p>
+<p>So <code>curl -X POST -d  &#39;{&quot;Account&quot; : &quot;Account1&quot;}&#39; http://localhost:3000/api/mockedrequest --header &quot;content-type: application/json&quot;</code> will return a 200, with payload as in the relative file.</p>
+<p>Now, in order to be able to modify the behavior, another end point is provided at <code>/api/overrideResponse/</code>. This accepts the behavior (account) that should become the new default for all requests OR, as and option, a reset to the original mapping. </p>
+<p>So <code>curl -X POST -d  &#39;{&quot;Account&quot; : &quot;Account1&quot;}&#39; http://localhost:3000/api/overrideResponse --header &quot;content-type: application/json&quot;</code> will make the server respond to all requests with the TestCase1, so on and so forth. Sending <code>&#39;{&quot;Account&quot; : null }&#39;</code> null will reset the responses to the original default.</p>
+<p>No need to restart servers, swap files or anything similar.</p>
+<h3 id="One-word-of-caution"><a href="#One-word-of-caution" class="headerlink" title="One word of caution"></a>One word of caution</h3><p>The server above is a display example. In order to achieve this behavior on a larger scale it is better practice not to pollute the global scope, and instead:</p>
+<ul>
+<li>Have the mapping in a separate module (configs), and inject the literal with the mapping in the server (or better yet in the api module) as needed.</li>
+<li>Have the functions handler in a separate api module as well (together with the var holding the status of the override), so to inject them as needed.</li>
+</ul>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2016/08/02/Arrow-functions-and-this/" data-toggle="tooltip" data-placement="top" title="Arrow functions (and this)">← Previous Post</a></li><li class="next"><a href="/2015/03/22/run-visual-studio-in-parallels/" data-toggle="tooltip" data-placement="top" title="Connecting remotely to a Visual Studio solution running in a VM (say Parallels)">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

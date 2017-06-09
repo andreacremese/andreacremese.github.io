@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Session issue in rails controller test</h1><p class="post-meta">Posted on Mar 6 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>This evening, while chewing through AWDR4 (link) I had an issue with the controller test. Here is the relevant code:</p>
+<pre><code class="ruby">&lt;!-- Controller: --&gt;
+class LineItemsController &lt; ApplicationController
+  include CurrentCart
+  before_action :set_cart, only: [:create, :destroy]
+  ...
+  def destroy
+    @line_item.destroy
+    respond_to do |format|
+      format.html { redirect_to @cart }
+      format.json { head :no_content }
+    end
+
+  end
+
+
+&lt;!-- CurrentCart --&gt;
+module CurrentCart
+  extend ActiveSupport::Concern
+
+  private
+  # how to make sure the session is able to follow the session. and the other way around too 
+  def set_cart
+    @cart = Cart.find(session[:cart_id])
+  rescue ActiveRecord::RecordNotFound
+    @cart = Cart.create
+    session[:cart_id] = @cart.id
+  end
+end
+
+// Test:
+class LineItemsControllerTest &lt; ActionController::TestCase
+  setup do
+    @line_item = line_items(:one)
+  end
+  ...
+  test &quot;should destroy line_item&quot; do
+    assert_difference(&#39;LineItem.count&#39;, -1) do
+      delete :destroy, id: @line_item
+    end
+
+    assert_redirected_to @cart
+  end
+end
+</code></pre>
+<p>In brief: I am deleting a line item form a cart, and then want to make sure I redirect to the cart.<br>The error that was instead given is below:</p>
+<pre><code class="ruby">LineItemsControllerTest#test_should_destroy_line_item [/Users/Andrea/code/depot/test/controllers/line_items_controller_test.rb:47]:
+
+Expected response to be a redirect to &lt;http://test.host/line_items&gt; but was a redirect to &lt;http://test.host/carts/980190963&gt;.
+
+*Expected &quot;http://test.host/line_items/980190962&quot; to be === &quot;http://test.host/carts/980190963&quot;.*
+</code></pre>
+<p>It is evident that somehow the destroy action makes the cart to disappear, and as a result the before_filter method causes a new cart to be created.</p>
+<p>After trying different things with no success (e.g. saving the cart in a local variable, using the line item and trying @line_item.cart), I decided to look into the session, and gather the cart I get form the session. therefore the working test was:</p>
+<pre><code class="ruby">  test &quot;should destroy line_item&quot; do
+    assert_difference(&#39;LineItem.count&#39;, -1) do
+      delete :destroy, id: @line_item
+    end
+    assert_redirected_to *cart_path(session[:cart_id])*
+  end
+</code></pre>
+<p>Noting gathering the cart form the session hash.</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/03/23/lessons-from-a-won-hackaton/" data-toggle="tooltip" data-placement="top" title="Lessons from a (won)Hackaton">← Previous Post</a></li><li class="next"><a href="/2014/02/15/Multiple-associations-between-models/" data-toggle="tooltip" data-placement="top" title="Multiple associations between models">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

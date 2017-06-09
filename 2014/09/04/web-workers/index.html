@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Web Workers</h1><p class="post-meta">Posted on Sep 4 2014 · <a href="/tags/JS/" class="tag post-meta">JS</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>Some notes form a quick Pluralsight course by Craig Shoemaker about web workers.</p>
+<h4 id="Web-workers"><a href="#Web-workers" class="headerlink" title="Web workers"></a>Web workers</h4><p>They are targeted at AJAX work, for labour intensive processes that will take time to finish up and might significantly impair the UI of the page. Seconding the work to a web worker will not lock up the UI wile long threads are going on. It is, in a way, a manner to create multi thread programming.</p>
+<p>Some of the uses include: 3D rendering, API responses, encripting, statistical analysis, CFD, messaging in social network. They can be:</p>
+<ul>
+<li>dedicated (they are linked to the their creator).</li>
+<li>shared (they can be called by any number of scripts).</li>
+</ul>
+<p>Note that <strong>IE &lt; 10 does not support them</strong>.</p>
+<h4 id="Access-restrictions"><a href="#Access-restrictions" class="headerlink" title="Access restrictions"></a>Access restrictions</h4><p>There are some quite severe access restrictions for the web workers:</p>
+<ul>
+<li>No access to the DOM - the UI is kept completely separate.</li>
+<li>No access to the window object.</li>
+<li>No access to host page + libraries.</li>
+</ul>
+<p>In other words, fun encapsulation. There si access to:</p>
+<ul>
+<li>appName</li>
+<li>appVersion</li>
+<li>platform</li>
+<li>userAgent</li>
+<li>Timers</li>
+<li>HttpRequests</li>
+</ul>
+<h4 id="How-to-set-up"><a href="#How-to-set-up" class="headerlink" title="How to set up"></a>How to set up</h4><h5 id="Instantiate-DOM"><a href="#Instantiate-DOM" class="headerlink" title="Instantiate (DOM)"></a>Instantiate (DOM)</h5><p>Instantiate a Worker object in the DOM. Note that the worker logic sits in a separate file.</p>
+<pre><code>var worker = new Worker(&#39;name_File.js&#39;);
+</code></pre><h5 id="Register-the-events-handlers-DOM"><a href="#Register-the-events-handlers-DOM" class="headerlink" title="Register the events handlers (DOM)"></a>Register the events handlers (DOM)</h5><p>Register the handlers for the events that the worker might fire:</p>
+<pre><code>worker.onmessage = messageHandler;
+worker.onerror = errorHandler;
+worker.postMessage(argument);
+</code></pre><p>The worker gets information and arguments by receiving messages and sends back information by responding to those messages with other messages. </p>
+<h5 id="Defining-the-events-handlers-DOM"><a href="#Defining-the-events-handlers-DOM" class="headerlink" title="Defining the events handlers (DOM)"></a>Defining the events handlers (DOM)</h5><p>messageHandler method will be the way the DOM will respond to the success of the worker.</p>
+<pre><code>function messageHandler(e){
+    var results = e.data;
+    // chew the output of the worker
+
+};
+</code></pre><p>e will be the response that is spitted out by the web worker.<br>Of course it would be good practice to handle the error as well</p>
+<pre><code>function errorHandler(e) {
+    // do some sort of catching
+
+};
+</code></pre><h5 id="Setting-up-the-worker"><a href="#Setting-up-the-worker" class="headerlink" title="Setting up the worker"></a>Setting up the worker</h5><p>The web worker has mainly two parts inside: 1) the function and logic that is to be performed and 2) listener for incoming messages. Part 2 goes like this:</p>
+<pre><code>addEventListener(&quot;message&quot;, some_function, true); 
+</code></pre><p>When a message is passed (whatever message, note) the some_function handler method is called.</p>
+<p>An alternative to the addEventListener method is to define directly an “onmessage” function.</p>
+<pre><code>// this is equivalent to the addEventListener to the worker
+onmessage = function (e) {
+     //do the thing
+}
+</code></pre><p>The onmessage function can be assigned as well to the worker’s global scope. This means that the onmessage can be rewritten appending the function to the scope.</p>
+<pre><code>self.onmessage = function (e) {
+     //do the thing
+}    
+</code></pre><p>The way to comunicate back to the main thread is to post messages back.</p>
+<pre><code>postMessage(the_local_results). 
+</code></pre><p><strong>note</strong>: the method that is used to communicate back and forth between worker and main thread is the same: postMessage().</p>
+<h4 id="Use"><a href="#Use" class="headerlink" title="Use"></a>Use</h4><p>The DOM and the web worker communicate through the postMessage method. Let’s see how this can work.</p>
+<h5 id="Passing-arguments-around"><a href="#Passing-arguments-around" class="headerlink" title="Passing arguments around"></a>Passing arguments around</h5><p>It is good practice not to send and return simple strings or instances of atomic data types, but rather send objects.</p>
+<pre><code>//in the DOM:
+var args = {InputData: {}, OutputData: {} };
+//...
+worker.postMessage(args);
+
+
+// in the worker
+function messageHandler(e) {
+    var args = e.data;
+    // do the logig and modify the args
+
+    postMessage(args);
+
+}
+
+addEventListener(&quot;message&quot;, messageHandler), true);
+</code></pre><p>Note that args is passed by value, meaning that whatever change it is made to the args in the worker will not be reflected to the DOM unless you specifically pass the args over and they are considered and read.</p>
+<h5 id="With-AJAX"><a href="#With-AJAX" class="headerlink" title="With AJAX"></a>With AJAX</h5><p>The same basic architecture is used, but the postMessage in the web worker will be called when the http request has finished (meaning status 200 and ready state 4). Only at that point I will send the message back to the DOM.</p>
+<pre><code>if (xmlhttp.readySTate == 4 &amp;&amp; html.status == 200) {
+    postMessage(xmlhttp.responseText)
+} 
+</code></pre><h5 id="How-to-stop"><a href="#How-to-stop" class="headerlink" title="How to stop"></a>How to stop</h5><p>There is no way to pause a worker while it is doing what he does. The two options are to wither terminate or close. </p>
+<p>Terminate is an abrupt termiation of the code, from the DOM environment.</p>
+<pre><code>// kill the worker
+_worker.terminate();
+</code></pre><p>Closing instead leaves some time and cleans up the memory. This needs to be initiated with a postMessage from the DOM, with a message hidden in the args (OR in the method signature).</p>
+<p>The code inside the worker is to close().</p>
+<pre><code>// in the DOM
+_worker.postMessage({Command: &quot;close&quot;, value: &quot;some value&quot;, message: &quot;some message&quot;})
+
+
+// in the worker handler (messageHandler)
+
+if(e.args == &quot;close&quot;) {
+    this.close();
+    // prepare the args that are to be passed back
+    postMessage(args);
+}
+</code></pre></article><ul class="pager blog-pager"><li class="previous"><a href="/2014/12/08/WCFservices/" data-toggle="tooltip" data-placement="top" title="WCF services - some take aways">← Previous Post</a></li><li class="next"><a href="/2014/08/07/delegates-in-c-number-and-other-interesting-stuff/" data-toggle="tooltip" data-placement="top" title="Delegates in C#">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

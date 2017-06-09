@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>POODR - Notes from Chapter 9 - testing</h1><p class="post-meta">Posted on May 8 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>The importance of testing cannot be underestimated. As a personal note, I can’t believe that during my time coding in Fortran we did not implement TDD but rather testing was done manually (well, we also had physical validation to ensure the data was correct).</p>
+<p><strong>Why testing?</strong></p>
+<ul>
+<li>Testing, if written first, is your specification. For someone like me coming form the construction industry, this is pretty cool.</li>
+<li>Find bugs and mishaps very early in the play, ideally before they can propagate.</li>
+<li>Gives documentation for free (free is good).</li>
+<li>Defer design decision and allow refactoring.</li>
+<li>Support abstractions.</li>
+<li>Expose dependencies (how much context do you need to set up to test a particular feature?).</li>
+</ul>
+<p><strong>What to test?</strong></p>
+<p>Following the encapsulation of private method, the public interface is <em>usually</em> what needs to be tested. Of course, there are exceptions.</p>
+<p><strong>How to test</strong></p>
+<p><em>BDD - Behavior Driven Design: Working from the boundaries of the app inside
+</em>TDD - Test Driven Design: Working from the core out.</p>
+<p>BDD requires much more mocking and, as a result, seems more prone to issues in terms of mocks not being aligned with the actual class and model.</p>
+<p>A few functions are to be tested:</p>
+<ul>
+<li>Incoming messages.</li>
+<li>Outgoing messages.</li>
+<li>Duck Typing.</li>
+<li>Inheritance structures.</li>
+</ul>
+<h3 id="Incoming-Interfaces"><a href="#Incoming-Interfaces" class="headerlink" title="Incoming Interfaces"></a>Incoming Interfaces</h3><p>These are the public methods of the class, tested making assertions about the expected response. A good example is attr_accessor.</p>
+<pre><code>class Dog
+    attr_accessor :name
+
+    def initialize (args={})
+        @leash = args[:leash]
+    end
+    [...]
+
+    def ready_to_go_out?
+        [...]
+        unless leash.has_bags?
+         return false
+        end
+        [...]
+    end
+end
+
+class DogTest &lt; MiniTest::Unit::TestCase
+
+    def setup
+        @dog = Dog.new(leash: Leash.new)
+        # here&#39;s the dependency injection!!
+    end
+
+    def test_responds_to_name
+        assert_respond_to(@dog, :name)
+    end
+end
+</code></pre><p>In the case dependency is injected (as before to make sure the leash has bags inside), this needs to be made evident in the test. Note that this is required as tests double up as well as documentation.</p>
+<p>Now the issue is that you might have different types of leash (leather, normal, long). To test Dog you can’t use an actual one, you need a double.</p>
+<pre><code>#say that we have so many leashes types, all in different classes
+# they will all be ducks, but we need the behavior to test the dog.
+class LeashDouble
+    [...]
+
+    def has_bags?
+        true
+    end
+end
+
+
+class DogTest &lt; MiniTest::Unit::TestCase
+
+    def setup
+        @dog = Dog.new(leash: LeashDouble.new)
+        # here&#39;s the dependency injection!!
+    end
+
+    def test_responds_to_name
+        assert_respond_to(@dog, :name)
+    end
+
+    def test_we_can_go_out
+        assert_equal @dog.go_out? true
+    end
+end
+</code></pre><p>Note that BDD requires extensive mocking, as in many cases the outer types will require some mock behavior from the more core classes.</p>
+<p>To be more precise, what you need from a Double is the behavior, not the leash itself. Now the risk is that the implementation of the object (the leash) might be updated, while the mock is not. This because the mock is, in a way, a sort of duplication (is it a violation of the DRY principle? who knows at this point). This will of course break your app badly.</p>
+<p>The easy way out of this is to implement a Duck Type testing, more on this later (the basic idea is to put the relevant testing in a module and include that module in the Double as well).</p>
+<h3 id="Outgoing-Messages"><a href="#Outgoing-Messages" class="headerlink" title="Outgoing Messages"></a>Outgoing Messages</h3><p>Outgoing messages are Queries or Commands, and in most cases they are not tested. If they need to be tested, a particular pattern for the test is required.</p>
+<pre><code>[...]
+
+def setup 
+    @observer = MiniTest::Mock.new
+    @gear         = Gear.new(
+                            chainring:     52,
+                            cog:         11,
+                            observer:     @observer)
+end
+
+def test_notifies_observers_when_cogs_changes
+    @observer.expect(:changed,true, [52,27])
+    @gear.set_cog(27)
+    @observer.verify
+end
+[...]
+</code></pre><p>Regarding the test:</p>
+<ul>
+<li>First line sets the check.</li>
+<li>Second line triggers the action.</li>
+<li>Third line actually does the testing.</li>
+</ul>
+<h3 id="Duck-typing"><a href="#Duck-typing" class="headerlink" title="Duck typing"></a>Duck typing</h3><p>When you have many objects that can pose as a duck, you cannot implement the same test in all of them by control-c and control-v. That is a blatant violation of DRY.</p>
+<p>As a test is, basically, a behavior - the idea is to lump the testing in a module (container of behavior) and then include this in the different modules.</p>
+<pre><code>module WalkerInterfaceTest
+    def test_that_it_walks_like_a_duck
+        assert_respond_to(@object, :walk_like_duck)
+    end
+end
+
+class DuckTesting &lt; MiniTest::Unit::TestCase
+    include WalkerInterfaceTest
+
+    def setup
+        @object = Duck.new
+    end
+end
+
+class ChickenTesting &lt; Minitest::Unit::TestCase
+    include WalkerInterfaceTest
+
+    def setup
+        @object = Chicken.new
+    end
+end    
+</code></pre><p>By including the module of the testing behavior, the testing will get run.</p>
+<h3 id="Testing-inheritance"><a href="#Testing-inheritance" class="headerlink" title="Testing inheritance"></a>Testing inheritance</h3><p>Inheritance actually presents many folds in terms of testing:</p>
+<ul>
+<li>Testing the interfaces abstract/concrete - done with a module that must be included in both the abstract class test and in the concrete class test.</li>
+<li>Testing concrete specific roles - done with a module to be included only by the concrete class.</li>
+<li>Testing unique behavior concrete class - included directly in the class method.</li>
+<li>Testing unique behavior abstract superclass - in some cases you need to include the behavior of a Subclass in the Superclass test. In these cases the pattern may be similar to the Doubles pattern above, with the same caveat (include to the doubles the same testing for the actual classes).</li>
+</ul>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/05/17/association-aggregation-and-composition-and-chapter-8-of-the-poodr/" data-toggle="tooltip" data-placement="top" title="Association, Aggregation and Composition (and chapter 8 of the POODR)">← Previous Post</a></li><li class="next"><a href="/2014/05/04/chapter-8-composition/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter8 - Composition">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

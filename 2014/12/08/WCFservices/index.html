@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>WCF services - some take aways</h1><p class="post-meta">Posted on Dec 8 2014 · <a href="/tags/C/" class="tag post-meta">C#</a> · <a href="/tags/WCF/" class="tag post-meta">WCF</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>Why writing an entry on Microsoft WCF services I have been asked?!?</p>
+<p>Well, in the absence of a copy of the Hitchhikers guide to the galaxy readily available, the path for al the knowledge and wisdom in the universe seems to pass through the MS exam 487 - Windows Azure.</p>
+<p>The folks at Microsoft decided it to be fun for include WCF in the syllabus. So here are some notes and take aways from a couple of very interesting zerto-to-hero Pluralsight courses, from which most of this material is taken.</p>
+<ul>
+<li><a href="http://www.pluralsight.com/courses/wcf-jumpstart" target="_blank" rel="external">WCF Jumpstart</a>.</li>
+<li><a href="http://www.pluralsight.com/courses/building-dotnet-web-services-10ways" target="_blank" rel="external">10 Ways to Build Web Services in .NET</a>.</li>
+</ul>
+<h2 id="Why-should-I-use-WCF"><a href="#Why-should-I-use-WCF" class="headerlink" title="Why should I use WCF?"></a>Why should I use WCF?</h2><h5 id="1-Don’t-worry-about-the-plumbing"><a href="#1-Don’t-worry-about-the-plumbing" class="headerlink" title="#1 Don’t worry about the plumbing"></a>#1 Don’t worry about the plumbing</h5><p>Windows Communication Foundation is an framework intended to minimize the effort in setting up communication between client and server side. It is a bit like a code first for Entity Framework, but instead of settign up a database with it, the code will then set up the API call and end points. Metaprogramming - code that writes code.<br>The basic idea is to address the issue of conventional RESTful APIs: the client side needs to have access to the access points and data structure required / returned in order to operate properly. This might be cumbersome during development. Enters WSDL (wiz-del).<br>Web Service Description Language AKA “(WSDL pronounced “wiz’-dul”) is an XML-based interface definition language that is used for describing the functionality offered by a web service.” from <a href="en.wikipedia.org/wiki/Web_Services_Description_Language">Wikipedia</a>.<br>The server side of a WCF service can outputs an XML file with the “documentation” for the access points + data expected and supplied, in WSDL format. The client side can read this and generate the calls to the access points automatically.<br>The idea is that, once the server side is set up, the client side can have a <strong>code generated proxy</strong>. The proxy is an object which will have the API calls as methods, and will provide access to the data types provided/required. Furthermore, the proxy can be updated later on in case the WCF service changes.<br>So neither the client nor the server side have to worry about the plumbing - as all is code generated. That is the idea.</p>
+<h5 id="2-Ease-to-add-access-points"><a href="#2-Ease-to-add-access-points" class="headerlink" title="#2 Ease to add access points"></a>#2 Ease to add access points</h5><p>An additional advantace for WCF is the ease of adding access points.</p>
+<p>WCF is purposefully configuration-heavy. It comes with App.config (if standalone) and/or Web.config (if hosted in ASP.NET) files, in which the endpoint are stated and specified.</p>
+<p>This means that to add an extra end point to a method that I have available, say with a different binding, I don’t need to touch the code but rather the configuration.</p>
+<p>The interesting feature is that end points and business logic are separated. So it is very easy to add multiple end point (hopefully with different standards and bindings) for the same behavior.</p>
+<h5 id="3-Share-the-models"><a href="#3-Share-the-models" class="headerlink" title="#3 Share the models"></a>#3 Share the models</h5><p>Related to the points above, the client side does not need to have extra view model hard coded in, it can leverage to the data types that are coming through the wire automatically.</p>
+<h2 id="what-goes-in-the-WDSL-specification-and-therefore-in-the-WCF"><a href="#what-goes-in-the-WDSL-specification-and-therefore-in-the-WCF" class="headerlink" title="what goes in the WDSL specification (and therefore in the WCF)"></a>what goes in the WDSL specification (and therefore in the WCF)</h2><p>At the end of the day, the API will need the end points, the data and the methods. Let’s define them.</p>
+<h5 id="Data-entities"><a href="#Data-entities" class="headerlink" title="Data entities"></a>Data entities</h5><p>The WCF service needs to have reference to two packages for the serialization” <strong>System.Runtime.Serialization</strong> and <strong>System.ServiceModel</strong>.</p>
+<p>This allows you to decorate the classes with the DataContract and DataMember attributes. In other words, you can specify what get serialized and send through the wire.</p>
+<pre><code>namespace YourService.Entities
+{
+        [DataContract]
+        public class Customer
+       {
+          [DataMember]
+        public Guid Id { get; set; }
+        [DataMember]
+        public string FirstName { get; set; }
+        [DataMember]
+        public string LastName { get; set; }
+        [DataMember]
+        public string Phone { get; set; }
+        [DataMember]
+        public string Email { get; set; }
+        [DataMember]
+        public string FullName { get { return string.Format(&quot;{0} {1}&quot;, FirstName, LastName); } set { } }
+    }
+} 
+</code></pre><h5 id="Operations-available"><a href="#Operations-available" class="headerlink" title="Operations available"></a>Operations available</h5><p>Similar to above, the Service and Operations contracts are defined in the code. Note the reference to the entities.</p>
+<pre><code>using YourService.Entities;
+
+namespace YourService.services
+{
+    [ServiceContract]
+    public interface IYourService
+    {
+        [OperationContract]
+        List&lt;Product&gt; GetStuff1();
+        [OperationContract]
+        void SubmitStuff(Customer customer);
+
+    }
+}
+</code></pre><h5 id="ABC-of-end-points-configuration"><a href="#ABC-of-end-points-configuration" class="headerlink" title="ABC of end points (configuration)"></a>ABC of end points (configuration)</h5><p>Each access point is defined by its ABC: </p>
+<ul>
+<li>Address - usually protocol + servier + resource Uri (<a href="http://localhost2112/GetMePizza" target="_blank" rel="external">http://localhost2112/GetMePizza</a>)</li>
+<li>Bindings - SOAP or JSON? (http, tcp, see <a href="https://social.msdn.microsoft.com/forums/vstudio/en-US/c556519f-cdc3-4522-a41c-a2f402bc6275/types-of-binding-in-wcf" target="_blank" rel="external">this fourm response</a> for the full rundown).</li>
+<li>Contracts - strcture of the data that is sent.</li>
+</ul>
+<p>For example, in App.config OR Web.config an endpoint would look like this:</p>
+<pre><code> &lt;services&gt;
+   &lt;services&gt;        
+    &lt;endpoint address=&quot;net.tcp://localhost:2113/GetMePizza&quot;
+              binding=&quot;netTcpBinding&quot;
+              contract=&quot;Pizza.services.IPizzaService&quot;&gt;
+    &lt;/endpoint&gt;
+ &lt;/service&gt;
+&lt;/services&gt;
+</code></pre><p>Now, adding another end point is a jiffy as well, no extra code but just add:</p>
+<pre><code>    &lt;endpoint address=&quot;http://localhost:2113/Zza&quot;
+              binding=&quot;basicHttpBinding&quot;
+              contract=&quot; Pizza.services.IPizzaService &quot;&gt;
+    &lt;/endpoint&gt;
+</code></pre><p>And the end point <strong>behavior</strong> can be amended as well -  say to send the exceptions to the client side during development.</p>
+<pre><code>&lt;behaviors&gt;
+  &lt;serviceBehaviors&gt;
+    &lt;behavior&gt;
+      &lt;serviceDebug includeExceptionDetailInFaults=&quot;true&quot; /&gt;
+    &lt;/behavior&gt;
+  &lt;/serviceBehaviors&gt;
+&lt;/behaviors&gt;
+</code></pre><h5 id="What-is-there-in-a-WCF-service-as-a-project"><a href="#What-is-there-in-a-WCF-service-as-a-project" class="headerlink" title="What is there in a WCF service (as a project)"></a>What is there in a WCF service (as a project)</h5><p>A WCF project is basically a C# class which includes:</p>
+<ul>
+<li>App.config (endpoints).</li>
+<li>Service (Business Logic).</li>
+<li>Interface (ServiceContracts).</li>
+<li>Properties presets to run the debugging of the WCF service - smoke test.</li>
+<li>References to the Entities (DataContracts).</li>
+</ul>
+<p>An alternative approach is rather to add the WCF as an item to an ASP.NET project. In this case, if you want to run debug on the WCF alone, you’d need to set the preferences manually (Debug -&gt; Start External Project -&gt; select the WCF test client .exe file in the .NET local folder)</p>
+<h2 id="How-to-host-the-service-during-Development"><a href="#How-to-host-the-service-during-Development" class="headerlink" title="How to host the service during Development"></a>How to host the service during Development</h2><p>There are three main ways to host a service:</p>
+<ul>
+<li>Debug in VS - smoke test.</li>
+<li>Console app (as an instance of ServiceHost).</li>
+<li>In an ASP.NET environment (remember that, if you host this in IIS it will work only with HTTP binding as a standard).</li>
+</ul>
+<h5 id="Console-hosting"><a href="#Console-hosting" class="headerlink" title="Console hosting"></a>Console hosting</h5><p>Out of the three I find the console hosting the most interesting, maybe as it is the most barebones. It is basically instantiate a ServiceHost and keeping it “alive”.</p>
+<pre><code>    namespace ConsoleHosting
+    {
+           class Program
+        {
+            static void Main(string[] args)
+            {
+
+                //use a try - catch is a good practice while setting up a host.
+                try
+                {
+                    //instantiate the service
+                    ServiceHost host = new ServiceHost(typeof(YourWCFService));
+
+                    //start listening to incoming messages - as of the config it will be listening everywhere
+                        host.Open();
+
+                    // now we need to keep this up and running for as long as we need
+                    Console.WriteLine(&quot;Hit any key to close this....&quot;);
+                    Console.ReadKey();
+
+                    // then we want to close in a graceful way
+                    // this means that the calls that are in progress will be fulfilled, but no new requests.
+                    host.Close();
+
+                }
+                catch (Exception ex)
+                {
+
+                        Debug.WriteLine(ex.Message);
+                }
+        }
+    }
+}
+</code></pre><p>Note that the end points are required in the App.config <strong>of the console project</strong>, and those do not need necessarily to be the same as the ones in the app.config <strong>of the WCF service</strong>. The former will be up for the console hosting, while the latter will be available for the debug - smoke testing.</p>
+<p>Also note that, in order to run a WCF as a console app, you will need to turn off the “Start WCF service” in the Properties of the WCF service. This otherwise the service will start by itself as debug, and the console app will not get access to the end points.</p>
+<pre><code>&lt;system.serviceModel&gt;
+&lt;services&gt;
+  &lt;service name=&quot;YourWCFService&quot;&gt;
+    &lt;host&gt;
+      &lt;baseAddresses&gt;
+        &lt;add baseAddress=&quot;http://localhost:2112&quot;/&gt;
+      &lt;/baseAddresses&gt;
+    &lt;/host&gt;
+    &lt;endpoint address=&quot;EnfPoint&quot;
+              binding=&quot;basicHttpBinding&quot;
+              contract=&quot;IYourWCFService&quot;&gt;
+    &lt;/endpoint&gt;
+    &lt;endpoint address=&quot;net.tcp://localhost:2113/EndPoint&quot;
+              binding=&quot;netTcpBinding&quot;
+              contract=&quot;IYourWCFService&quot;&gt;
+    &lt;/endpoint&gt;
+  &lt;/service&gt;
+&lt;/services&gt;
+</code></pre><h2 id="Architecture-of-the-Solution"><a href="#Architecture-of-the-Solution" class="headerlink" title="Architecture of the Solution"></a>Architecture of the Solution</h2><p>Interestingly, but not surprisingly, the two courses I followed suggested two different architectures of the projects’ organization:</p>
+<ul>
+<li>One with 5 namespaces<ul>
+<li>A WCF Service (Service Contracts in the Interface, business logic).</li>
+<li>Entities (Data Contracts).</li>
+<li>Host.</li>
+<li>Data (Entity Framework).    </li>
+<li>Client.</li>
+</ul>
+</li>
+</ul>
+<p>OR otherwise</p>
+<ul>
+<li><p>3 Namespaces:</p>
+<ul>
+<li>ASP.NET application with a WCF item inside.</li>
+<li>Data element (with Data Contracts, business logic around the data contracts, Entity Framework DbContext logic).</li>
+<li>Client side.</li>
+</ul>
+</li>
+</ul>
+<p>The first implementation seems to me the more linear and easier to understand to me (especially for separation of concerns). In the second implementation I started to have issues with the implementation of the client side, due to clashing after having created the proxy (more on proxy later).</p>
+<h2 id="The-proxy-element-client-side"><a href="#The-proxy-element-client-side" class="headerlink" title="The proxy element / client side"></a>The proxy element / client side</h2><p>One of the biggest reasons to set up a WCF service is to leverage the Web Services Description Language.</p>
+<p>To review the main idea is that:</p>
+<ul>
+<li>You don’t have to worry about the plumbing as the client side can “learn” about it form the WSDL AND</li>
+<li>It is easier to update the endpoint, as the reference can be updated.</li>
+</ul>
+<p>Adding a service reference in the client project is very easy. Just Add -&gt; Service reference to the client project. The same provides a system to update the reference.</p>
+<p>Note that you can discover the service specification in a few ways. If the service is in the same solution and it is in an .svc file you have access to the code and there is no need to add anything else.</p>
+<p>If instead the service is hosted in a console app / IIS you are better off starting that solution Without Debugging (so you can access and modify the code). The Add Service menu can at this point discover the service that is up and running.</p>
+<p>Obviously, as the back end gets updated, the client side can be updated automatically too. That is a nice plus.</p>
+<h4 id="Once-you-get-the-proxy"><a href="#Once-you-get-the-proxy" class="headerlink" title="Once you get the proxy"></a>Once you get the proxy</h4><p>At this point the client side can instantiate a the proxy object, which has a method for each endpoint call made available by the server side (actually, it gives one method for the sync and one for the async). </p>
+<p>Also notable, on the client side you have access to the DataModels that are specified on the server side. This is even easier for the code if you add a reference for the client project to the project containing the Entities (another good reason to keep this separated).</p>
+<p>For example, in order to reach an end point in the client controller all you need to do is:</p>
+<pre><code>YourServiceClient proxy = new YourServiceClient(&quot;httpBasicBinding&quot;);
+// in case there are multiple bindings available you can pass the binding you want to the constructor
+
+ ObservableCollection&lt;Customers&gt; customers = proxy.GetCustomers();
+</code></pre><h4 id="Standaonle-client-side"><a href="#Standaonle-client-side" class="headerlink" title="Standaonle client side"></a>Standaonle client side</h4><p>Note that all this is possible also if the WCF service solution is hosted somewhere else (say in Azure) and you don’t have direct access to the it namespace. At the end all you need is access to the WSDL specification for the service in order to generate the proxy element. </p>
+<p>I have not tried the second scenario, but I believe it is likely that the Firewall will need to be opne + CORS needs to be enabled for the API to work correctly.</p>
+<p>An API call with two lines of code. Neat eh?</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2015/02/09/rabbitmq-basics/" data-toggle="tooltip" data-placement="top" title="RabbitMQ basics">← Previous Post</a></li><li class="next"><a href="/2014/09/04/web-workers/" data-toggle="tooltip" data-placement="top" title="Web Workers">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

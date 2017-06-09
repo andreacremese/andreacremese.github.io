@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>POODR - Notes from Chapter8 - Composition</h1><p class="post-meta">Posted on May 4 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>“Composition is the act of combining together parts into complex wholes”.</p>
+<p>Unlike inheritance, where behavior and data could be promoted into an abstract class, in composition there is not a specific pattern between the objects, beside that they interact together to make the whole.</p>
+<p>Greyhound is a concrete class of the abstract class Dog, but Dog is not a concrete class of the abstract class Farm. So in the second case, the relationship cannot be of inheritance.</p>
+<p>At the same time, an Kitchen is an instance of the Room class, but it cannot inherit form House.</p>
+<h2 id="How-is-this-done"><a href="#How-is-this-done" class="headerlink" title="How is this done"></a>How is this done</h2><h4 id="Array-style-classes"><a href="#Array-style-classes" class="headerlink" title="Array style classes"></a>Array style classes</h4><p>First of all, the “container” of elements is built in an array-style. This might mean including behavior in the class what derives from somewhere else. <strong>Forwardable</strong> is a good way to do it (rather than trying to replicate the code you already have in the Array class).</p>
+<pre><code>class House
+    attr_accessible :rooms, :address
+
+    def initialize(args={})
+        @address    = args[:address]
+        @rooms         = args[:rooms]
+    end
+end
+
+require &#39;forwardable&#39;
+class Rooms
+    extend Forwardable
+    def_delegators :@rooms, :size, :each
+    include Enumerable
+    [...]
+end
+</code></pre><p>Forwardable allows to rely on the code that is available, to treat array-like elements as an array.</p>
+<h4 id="Factories"><a href="#Factories" class="headerlink" title="Factories"></a>Factories</h4><p>In addition, the idea is to delegate the creation of classes to a Factory. A Factory is a module as it encompasses only behavior and not data. </p>
+<p>The behaviors that are included are:</p>
+<ul>
+<li>To create the array-like container class (.build method below).</li>
+<li>To create the instances inside the array (.create_part method below).</li>
+</ul>
+<p>Note that OpenStruct is like struct, with the difference that the initialize accepts hash or arguments, rather than array).</p>
+<pre><code>require &#39;ostruct&#39;
+module RoomsFactory
+    # behavior #1, create the array like container class
+    def self.build(config, rooms_class = Rooms)
+        rooms_class.new(
+            config.collect{|room_config|
+                create_room(room_config)})
+    end    
+
+    # behavior #2, create the room from the config
+    def self.create_room(room_config)
+        OpenStruct.new(
+            name:             part_config[0],
+            width:     part_config[1],
+            length:     part_config[3]
+            )
+    end
+end
+</code></pre><h4 id="Basic-configurations"><a href="#Basic-configurations" class="headerlink" title="Basic configurations"></a>Basic configurations</h4><p>Note that the basic configurations for the objects are held by arrays of arrays. These are passed to .create_part in order to instantiate a new farm member.</p>
+<p>Meaning that the following code is used to create an animal farm:</p>
+<pre><code>NY_flat_config = [[&#39;kitchen&#39;, &#39;8&#39;,&#39;8&#39;],
+                [&#39;bathroom&#39;, &#39;4&#39;,&#39;6&#39;],
+                [&#39;bed_room&#39;, &#39;6&#39;,&#39;6&#39;]]
+
+
+House.new(address: &quot;times square, NYC&quot;, 
+            rooms:     RoomsFactory.build(NY_flat_config))
+</code></pre><p>The composition part is the .build. This method will take the array with the standard configuration, will create a room for each element of the array (which is an array itself).</p>
+<p>Of course, the point is to have different configurations in order to be able to create elements on the spot via the factory.</p>
+<pre><code>suburb_house_config = [[&#39;kitchen&#39;, &#39;15&#39;,&#39;15&#39;],
+                [&#39;bathroom1&#39;, &#39;8&#39;,&#39;10&#39;],
+                [&#39;bathroom2&#39;, &#39;5&#39;,&#39;7&#39;],                            [&#39;living_room&#39;, &#39;20&#39;,&#39;20&#39;],
+                [...]    
+                [&#39;bed_room1, &#39;14&#39;,&#39;16&#39;]]
+</code></pre><h4 id="Aggregation-vs-Collection"><a href="#Aggregation-vs-Collection" class="headerlink" title="Aggregation vs Collection"></a>Aggregation vs Collection</h4><p>Aggregation is where the elements are expected to be used as standalone, while collection is used when the elements only make sense if part of the whole.</p>
+<p>It would make little sense of use the room alone in the case of a construction and selling of a house (collection), while if the house is for rent it might make more sense for the room to be a standalone element (aggregation).</p>
+<h2 id="Inheritance-vs-Composition"><a href="#Inheritance-vs-Composition" class="headerlink" title="Inheritance vs Composition"></a>Inheritance vs Composition</h2><p>With inheritance, you get automatic delegation. Also, the code can be much more reasonable, usable and exemplary. Nonetheless, inheritance cannot be used in all cases (in some cases an element cannot really be an <em>is a…</em>).  Also, the fallout in case of mistake is much larger.</p>
+<p>With composition there is little or no automatic delegation. The tendency is to modularize the problem in many small parts (which is good) with small interfaces (which is good). As a drawback, composition is much harder to pry into from the outside.</p>
+<p><strong>note: all code in this page is pseudo-code. Check out my github for working examples. Or, even better, BUY THE BOOK</strong></p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/05/08/chapter9-testing/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 9 - testing">← Previous Post</a></li><li class="next"><a href="/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 7 Modules (and Inheritance, extended edition)">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

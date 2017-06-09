@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Arrow functions (and this)</h1><p class="post-meta">Posted on Aug 2 2016 · <a href="/tags/JS/" class="tag post-meta">JS</a> · <a href="/tags/ES6/" class="tag post-meta">ES6</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>In the past month or so I found myself discussing the ES6 Arrow function syntax in a few occasions. In some cases I realized that the general understanding was <strong>“arrow functions are just a different, more concise way of writing anonymous functions in JS”</strong>. I have to confess that at the beginning that was as well my impression. Watching <a href="https://www.pluralsight.com/courses/rapid-es6-training" target="_blank" rel="external">Mark Zamoyta’s ES6 training on Pluralsight</a> gave a great impetous in order to dissect the nuances of arrow functions.</p>
+<p>The specs seem to suggest that a shorter syntax is part of the reason why arrow functions were introduced, but they are not a like-for-like substitution for anonymous functions. There are other differences that need to be taken into consideration and, to my mind, the main difference is that <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions" target="_blank" rel="external"><strong>an arrow functions […] does not bind its own “this”</strong></a> (from the Mozilla docs).</p>
+<h3 id="Introduction-Lexical-scope-Dynamic-scope-and-this"><a href="#Introduction-Lexical-scope-Dynamic-scope-and-this" class="headerlink" title="Introduction: Lexical scope, Dynamic scope and this"></a>Introduction: Lexical scope, Dynamic scope and <code>this</code></h3><p>As a reminder, <strong>lexical scope</strong> (aka static scope) means that each function has access to its own scope and to the scopes of the calling functions as they are declared. In case the variable / function requested is not present in the current scope, the higher level scope is searched.</p>
+<pre><code class="javascript">function doSomething() {
+    var a = &quot;Andrea&quot;;
+    function printIt() {
+        console.log(`The name is ${a}`);
+        // The lexical (static) scope contains a at the level &#39;above&#39;. 
+    }
+    printIt();
+}
+
+doSomething(); // Prints The name is Andrea;
+</code></pre>
+<p>This is in contrast with <strong>dynamic scope</strong>, where the variable depends on the program state at execution time.</p>
+<pre><code>function doSomething() {
+	var a = &quot;Andrea&quot;;
+	printIt();
+}
+
+function printIt() {
+	console.log(`The name is ${a}`);
+}
+
+doSomething(); &#x2F;&#x2F; Gives a &#39;Reference error&#39; as &#39;a&#39; is not in scope. A language like LISP with dynamic scope would be able to access &#39;a&#39;.;</code></pre>
+<p>In other words, dynamic scoping would assign variables not according to where functions are written, but rather looking at the call stack. In this case the decision of what the scope containts is a runtime decision, while the lexical scoping decision is a parse time one.</p>
+<p>Javascript has lexical scope, functions have their own scope when they run (Note: if functions are new’ed they return that scope automatically). But Javascript provides us well with the <code>this</code> mechanism, which instead of doing scope lookups traverses the delegation chain, in a mechanism that is similar to dynamic scope.</p>
+<h3 id="Arrow-functions-and-lexical-scope"><a href="#Arrow-functions-and-lexical-scope" class="headerlink" title="Arrow functions and lexical scope"></a>Arrow functions and lexical scope</h3><p>Arrow functions do not bind to their own lexical scope, but rather they bind to the lexical scope of the function they are invoked into. In other words, they don’t create a new scope but rather bind automatically to the scope they are invoked in. This makes them very useful as they don’t create a new ‘this’ in the scope and bind to that the way a <code>function</code> expression does. Also, if<code>this</code> is called inside an arrow function, the “higher level’s” <code>this</code> is actually accessed. </p>
+<p>A good example of this behavior is in callbacks, handlers and any situation in which an anonymous function expression is nested within a function with a scope. With an arrow function there is no need anymore to do the old fashion “save the reference to <code>this</code> into a variable to be able to access it from the callback”. </p>
+<p>Meaning:</p>
+<pre><code>function someClass() {
+	this.name = &quot;Andrea&quot;;
+	setTimeout(function () {
+		console.log(`Hello ${this.name}`);
+	},1000)
+}
+
+var p = new someClass(); &#x2F;&#x2F; will output only &#39;Hello&#39;</code></pre> 
+<p>In order to make the code above work we’d need to get the reference to the scope into a variable, usually <code>self</code> (or <code>vm</code> in John Papa’s angular style guide - <a href="https://johnpapa.net/angularjss-controller-as-and-the-vm-variable/" target="_blank" rel="external">Controller-As pattern</a>):</p>
+<pre><code>function someClass() {
+	var self = this;
+	self.name = &quot;Andrea&quot;;
+	setTimeout(function () {
+		console.log(`Hello ${self.name}`);
+	},1000)
+}
+var p = new someClass(); &#x2F;&#x2F; will output &#39;Hello Andrea&#39;</code></pre>
+<p>This is not needed with arrow functions.</p>
+<pre><code>function someClass() {
+	this.name = &quot;Andrea&quot;;
+	setTimeout(() =&gt; {
+		console.log(`Hello ${this.name}`);
+	},1000)
+}
+var p = new someClass(); &#x2F;&#x2F; will output &#39;Hello Andrea&#39;</code></pre>
+<p>As a closing thought, because they dont create their own scope, arrow functions canot be <strong>newd</strong> the same way expression functions can.</p>
+<h4 id="A-real-life-example-from-this-morning’s-code-review"><a href="#A-real-life-example-from-this-morning’s-code-review" class="headerlink" title="A real life example (from this morning’s code review)"></a>A real life example (from this morning’s code review)</h4><p>While these examples seem academic (in fact they are very similar to Mozilla Doc’s examples), below is an example from real life. </p>
+<p>This is an extract from an event handler in a meteor template. The idea is to show a <a href="http://semantic-ui.com/modules/modal.html#/usage" target="_blank" rel="external">Semantic UI modal</a> and if the modal is confirmed, delete a certain object in a collection.</p>
+<pre><code>Template.sampleTemplate.events({
+   	&quot;click #delete-trip&quot; : function () {
+        var _id = this._id;
+        $(&#39;.delete-modal&#39;).modal({
+        	&#x2F;&#x2F; this is the handler for approval on the modal
+                onApprove : function () {
+                	&#x2F;&#x2F; this is the action on the collection.
+                	&#x2F;&#x2F; note that the code needs to place the this._id in 
+                	&#x2F;&#x2F; an _id variable, as the handler creates its own lexical scope, 
+                	&#x2F;&#x2F; where this._id is not present. 
+                    reports.update({_id : _id}, {$set : {isDeleted : true}});
+                    sAlert.info(&quot;Report Deleted&quot;);
+                    return true;
+                },
+                onHidden : function () {
+                    $(&quot;.modal&quot;).remove();
+                    Router.go(&#39;reportsDash&#39;);
+                }
+            })
+            .modal(&#39;show&#39;);
+	}
+	[...]
+})</code></pre>
+<p>In order to run correctly and avoid an <code>undefined property _id</code> error, the event handler needs to store the scope (or the part of the scope that will be used later) in a variable in the lexical scope. That is the function of the line <code>var _id = this._id</code>. As Arrow functions don’t create a lexical scope, this line is not needed if you are using an arrow function.</p>
+<p>This seems like a nuance, but having access to the <code>this</code> scope from the handler allows to basically forget about storing the _id in a variable and instead write the following:</p>
+<pre><code>Template.sampleTemplate.events({
+   	&quot;click #delete-trip&quot; : function () {
+        &#x2F;&#x2F; var _id = this._id; &#x2F;&#x2F; this is not needed anymore
+        $(&#39;.delete-modal&#39;).modal({
+                onApprove : () =&gt; {
+                    &#x2F;&#x2F; this._id is now in the handler&#39;s scope 
+                    reports.update({_id : this._id}, {$set : {isDeleted : true}});
+                    sAlert.info(&quot;Report Deleted&quot;);
+                    return true;
+                },
+                onHidden : function () {
+                    $(&quot;.modal&quot;).remove();
+                    Router.go(&#39;reportsDash&#39;);
+                }
+            })
+            .modal(&#39;show&#39;);
+	}
+	[...]
+})</code></pre>
+<p>For the meteor aficionados, the event handler above requires setting up the <code>allow</code> on the back end. Meteor methods are a much better pattern, and it is the next refactoring. Have a look at this <a href="https://github.com/andreacremese/calendarapp/blob/develop/lib/methods/atgEventsMethods.js" target="_blank" rel="external">Meteor method example</a>.   </p>
+<h3 id="Arrow-functions-and-object-methods-an-important-watch-it"><a href="#Arrow-functions-and-object-methods-an-important-watch-it" class="headerlink" title="Arrow functions and object methods, an important watch-it!"></a>Arrow functions and object methods, an important watch-it!</h3><p>More on the distinction between arrow functions and function expressions, using an arrow function to define an object on a method can cause some unpredictable (bad) results, as the property method cannot be bound to the object’s <code>this</code>, therefore preventing access to its other properties / methods.</p>
+<pre><code>var object = {
+	name : &quot;Enrico&quot;,
+	talkArrow : () =&gt;  { console.log(&quot;with the rocket as anonymous function this&#39; name is &quot; + this.name); },
+	talkFunction : function () { console.log(&quot;with the function expression this&#39; name is &quot; + this.name); },
+}
+
+object.talkArrow() &#x2F;&#x2F; will fail to access the name in the object&#39;s scope
+&#x2F;&#x2F; returns &#39;with the rocket as anonymous function this&#39; name is undefined&#39;
+object.talkFunction() &#x2F;&#x2F; correctly prints &#39;with the function expression this&#39; name is Enrico&#39;</code></pre>
+<p>The new shorthand syntax in order to achieve that with less keypresses is as follows (note, no arrow sign).</p>
+<pre><code>var object = {
+	name : &quot;Enrico&quot;,
+	talkNamedArrow() { console.log(&quot;with the named function shorthand this&#39; name is &quot; + this.name); }
+}
+
+object.talkNamedArrow() &#x2F;&#x2F; =&gt; prints &#39;with the function shorthand expression this&#39; name is Enrico&#39;</code></pre>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2016/08/16/tfs-or-git/" data-toggle="tooltip" data-placement="top" title="Tfs or git?">← Previous Post</a></li><li class="next"><a href="/2015/05/07/Mocks-with-node-plus-express/" data-toggle="tooltip" data-placement="top" title="Mocks with Node + Express">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

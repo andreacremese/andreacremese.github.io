@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Delegates in C#</h1><p class="post-meta">Posted on Aug 7 2014 · <a href="/tags/c/" class="tag post-meta">c#</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>A few notes on delegates, from <a href="http://pluralsight.com/training/Player?author=scott-allen&amp;name=csharp-fundamentals-csharp5-m4&amp;clip=4&amp;course=csharp-fundamentals-csharp5" target="_blank" rel="external">this very interesting course</a> by Scott Allan on Pluralsight.</p>
+<h4 id="Fields-VS-properties"><a href="#Fields-VS-properties" class="headerlink" title="Fields VS properties"></a>Fields VS properties</h4><p><strong>Field</strong>: also called <strong>backing fields</strong>, are one of the information encapsulated in the instance of an object. Note that fields are supposed to be encapsulated in the object and not public (i.e. keep them private). The public interface of a field is a property (see below). The convention for fields is to be named with an underscore before their name.</p>
+<p><strong>Property</strong>: the public interface that exposes backing field(s). Referring back to POODR, it is part of the public “messaging” that the instances of classes send one another. Each property comes with a get and a set (remember attr_accessor in POODR? Same thing). The convention is to have the property name CamelCased.</p>
+<pre><code>//This is the field
+private string _name
+
+// This is the property        
+public string Name {
+    get {
+        return _name
+        }
+    set {
+        _name = value;
+        }
+}
+</code></pre><h4 id="Delegate-type"><a href="#Delegate-type" class="headerlink" title="Delegate type"></a>Delegate type</h4><p>It is a data type that references listener methods. Even though it is a data type, its definition looks like that of a method. As it encopasses behavior, this is not too surprising. </p>
+<pre><code>public delegate void Name_Of_Delegate(string some_string);
+</code></pre><p>At some point you will have a variable referencing the delegate data type (as you do in JS, for example):</p>
+<pre><code>var delegate = new Name_Of_Delegate(a_previously_defined_string); 
+</code></pre><p>In this case the delegate takes a string, more on this later.</p>
+<h4 id="Listening-to-property-change"><a href="#Listening-to-property-change" class="headerlink" title="Listening to property change"></a>Listening to property change</h4><p>Ok, now for the main dish. Say that I can change the name of a certain instance of an object (property Name, backing field= _name). Say that I want to “announce” that someone has changed the name to a listener. I’d do that with a delegate (see above) that will contain all the behavior to be activated at name change.</p>
+<p>First, in the property get/set:    </p>
+<ul>
+<li>Make sure it is indeed a new value.</li>
+<li>Make sure that someone is interested in the fact that the name has changed, otherwise I will get a RunTimeError.</li>
+<li><p>Make sure the delegate is an event (see its definition, more on this later).</p>
+<pre><code>  private string _name;
+  public event NamedChangedDelegate NameChanged;
+
+  public string Name
+  {
+      get
+      {
+          return _name;
+      }
+      set
+      {
+          if (_name != value)
+          {
+              var oldValue = _name;
+              _name = value;
+              if (NameChanged != null)
+              {
+                  NameChangedEventClass args = new NameChangedEventClass();
+                  args.OldValue = oldValue;
+                  args.NewValue = value;
+                  NameChanged(this, args);
+              }
+          }
+      }
+  }
+</code></pre></li>
+</ul>
+<h4 id="Delegate-and-Event"><a href="#Delegate-and-Event" class="headerlink" title="Delegate and Event"></a>Delegate and Event</h4><p>The NameChangedDelegate is the delegate that we were discussing before. The intersting part is that the instance of the class who’s name is changing has absolutely no idea about what methods are rolled in the NameChangedDelegate, s/he only knows that someone might be listening. This is a great <strong>decoupling</strong>!<br>    // the delegate - good practice to encapsulate in a different class file<br>    public delegate void NamedChangedDelegate(object sender, NameChangedEventClass args);</p>
+<p>Note that the delegate takes in two elements: the sender object and the arguments that he might be interested into. This is a convention in c#. The arguments that he might be interested into are ecapsulated in the instance of a class callsed NameChangedEvent - that we will have to create as well.</p>
+<pre><code>// The class to encapsulate of the values that delegate might be interested into. Good practice to encapsulate in a different class file        
+    public class NameChangedEventClass : EventArgs
+{
+    public String OldValue{ get; set; }
+    public String NewValue { get; set; }
+}        
+</code></pre><p>Note that the class inherits from the EventArgs class.</p>
+<h4 id="Registering-the-listeners"><a href="#Registering-the-listeners" class="headerlink" title="Registering the listeners"></a>Registering the listeners</h4><p>Now, wherever I want to listen to the name changing I’d need to register my event listener. The event listener will be a method that does, well, pretty much what I want it to do, when the name changes. Note that the fact that in this case it is a class (static) method is only pertinent to the example at hand.</p>
+<pre><code>//this is the registration of the method 
+my_sample_class.NameChanged +=     OnNameChanged;
+
+    //this is the method to be activated    
+    private static void OnNameChanged2(object sender, NameChangedEventClass args)
+    {
+        Console.WriteLine(&quot;Name changed from {0} to {1}&quot;, args.OldValue, args.NewValue);
+    }
+</code></pre><p>Note that += is required in order to avoid overwriting the existing listeners that might already be in existance. This is because the delegate is a <strong>multicast delegate</strong>, meaning it can have a list of elements inside (so you’d better add to the list, rather than risking re initializing the list). </p>
+<p>Events do not allow anyway to initialize, but only to add and delete (as the NameChanged is specified as a <em>public event …</em>).</p>
+<h4 id="Interesting-note"><a href="#Interesting-note" class="headerlink" title="Interesting note"></a>Interesting note</h4><p>The delegate takes in the full sender object. This is a standard pattern in C#. This reminded me of the pattern for modules (mixins of behavior) in Ruby as proposed by Sandy Metz in the POODR book, refer also to this <a href="http://andreahk5.github.io/blog/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/" target="_blank" rel="external">link</a>. </p>
+<p>As the C# delegate is basically behavior (what would be a module in Ruby), this pattern is similar, even though reversed in a way. It is the sender that passes itself to the module (event) - rather than the module (event) passing itself to the implementing class. Just some food for thought.</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/09/04/web-workers/" data-toggle="tooltip" data-placement="top" title="Web Workers">← Previous Post</a></li><li class="next"><a href="/2014/05/17/association-aggregation-and-composition-and-chapter-8-of-the-poodr/" data-toggle="tooltip" data-placement="top" title="Association, Aggregation and Composition (and chapter 8 of the POODR)">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

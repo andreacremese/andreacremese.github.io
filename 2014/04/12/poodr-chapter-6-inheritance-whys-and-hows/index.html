@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>POODR - Notes from Chapter 6 Inheritance (whys and hows)</h1><p class="post-meta">Posted on Apr 12 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/rails/" class="tag post-meta">rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>In the big picture the why remains always the same for <a href="http://www.poodr.com/" target="_blank" rel="external">poodr</a> book: reduce the marginal cost of adding a functionality to a ruby application.</p>
+<p>Here are some notes on Chapter 6 - Inheritance.</p>
+<h4 id="The-Basics"><a href="#The-Basics" class="headerlink" title="The Basics"></a>The Basics</h4><p>Inheritance, at its core, is an <strong>automatic message delegation</strong> system. As seen in previous chapter, the core of OOD relies on messages and how these are exchanged between classes.</p>
+<p>Inheritance comes handy when one class develops and needs to have different behaviors. At first it seems tempting to swell the one class (or data type) with multiple behaviors. </p>
+<p>This will most likely violate the <strong>single responsibility</strong> requirement (see chapter2). You’ll have classes with a gazilion of if statements or, even worse, case .. where to decide what behavir to invoke. </p>
+<p>In order to avoid this, the idea is use inheritance. Conceptually, the mechanics of the process are to <strong>promote</strong> the generic behavior to the <strong>abstract</strong> class (the parent, or superclass), and to leave the <strong>specialized</strong> behavior in the <strong>concrete</strong> classes. </p>
+<p>One watch it: if inheritance is implemented with only one “child” class, it is very likely done wrong!</p>
+<h4 id="Automatic-messaging-delegation"><a href="#Automatic-messaging-delegation" class="headerlink" title="Automatic messaging delegation"></a>Automatic messaging delegation</h4><p>When using inheritance, if a message (method) is not present in the concrete (child) class, the call is automatically pushed up to the super class. </p>
+<p>On the other hand  if the method is present in the child class the parent class method is not considered at all.</p>
+<p>This can be overrided and the beaviors mixed by calling <code>super</code> in the concrete class. This allows to retrieve the behavior from the superclass.</p>
+<pre><code>class Abstract
+
+    def some_method
+        [...]
+    end
+
+    def some_other_method
+        [...]
+    end
+end
+
+class Concrete &lt; Abstract
+
+    def some_method
+        [...]
+        # the method in the Abstract class is NOT invoked
+    end
+
+    def some_other_method
+        [...]
+        super
+        # the method in the Abstract class IS invoked
+    end
+end
+</code></pre><p>Note that a <code>super</code> call is an admission that the concrete class knows behaviors of the abstract class. In other word, <strong>calling super is a coupling</strong>. And coupling is bad as it might hinder the capability of the code to be scaled up.</p>
+<h4 id="Promoting-Behavior…"><a href="#Promoting-Behavior…" class="headerlink" title="Promoting Behavior…"></a>Promoting Behavior…</h4><p>The idea is to put all the behavior that is common (abstract) in the super class, letting the concrete classes to specialize.</p>
+<h4 id="…in-initialization-Hook-message"><a href="#…in-initialization-Hook-message" class="headerlink" title="…in initialization (Hook message)"></a>…in initialization (Hook message)</h4><p>This is implemented right off the bat in the <code>initialize</code> method. In order to minimize the .super calls, the technique for the .new are to rely on explicit messages passed between the superclass and the child.</p>
+<ul>
+<li>Let the superclass have the initialize method.</li>
+<li>At the end of the initialize call a post_initialize method (hook message), that contains the specialized behavior for the concrete class.</li>
+<li>The post_initialize method needs to be present in the superclass - but in this case it just spits out nil.</li>
+</ul>
+<p>This is also called <strong>hook message</strong>. </p>
+<pre><code>class Abstract
+
+    def initialize(args)
+        [...]
+
+        post_initialize(args)
+    end
+
+    def post_initialize(args)
+        nil
+    end
+end
+
+class Concrete1 &lt; Abstract
+
+    def post_initialize(args)
+        @specialized_variable1     = args[:specialized_variable1]
+    end
+
+    [...]
+end
+
+class Concrete2 &lt; Abstract
+
+    def post_initialize(args)
+        @specialized_variable2     = args[:specialized_variable2]
+    end
+
+    [...]
+end
+</code></pre><h4 id="…in-defaults-for-initialization-Template-Method"><a href="#…in-defaults-for-initialization-Template-Method" class="headerlink" title="…in defaults for initialization (Template Method)"></a>…in defaults for initialization (Template Method)</h4><p>Defaults for variables are best to be messages (surprise surprise) and to be implemented in the specialized class - see example below. </p>
+<p>A default value is to be given for the abstract class as well if possible. In some cases this is not possible or would not make sense.</p>
+<p>The fact that the specialized class needs to implement a default value should not be left hanging. This is where a <code>raise</code> comes handy.</p>
+<pre><code>class Abstract
+
+    def initialize(args)
+        @variable1         = args[:variable1] || variable1
+        @varialve2        = args[:variable2] || variable2
+    end
+
+    def variable1
+        &quot;value1 - abstract value&quot;
+    end
+
+    #In the case variable2 cannot be set to a sensible value in the abstraction
+    #and needs to be in the specialized class, an error would allow easier debugging later on.
+
+    def variable2
+        raise NotImplementedError,
+        &quot;This #{self.class} cannot respond to: #{__method__}&quot;
+    end
+
+    end
+
+    class Concrete1 &lt; Abstract
+
+        def variable1
+            &quot;value1 - specialized value 1&quot;
+        end
+
+        [...]
+
+    end
+
+    class Concrete2 &lt; Abstract
+
+        def variable1
+            &quot;value1 - specialized value 1&quot;
+        end
+
+        [...]
+
+    end
+</code></pre><h4 id="…for-behavioral-methods"><a href="#…for-behavioral-methods" class="headerlink" title="…for behavioral methods"></a>…for behavioral methods</h4><p>In order to decouple as much as possible, the idea is to implement all of the behavior present in the child classes, and delegate down to them the behavior via a local message.</p>
+<p>In a way, this seems to suggest that the superclass should have the public methods that are expected to call by an external source (if this is within the shared abstract behavior), with the specialized methods feeding up the messages to the public methods.</p>
+<pre><code>    class Animal
+
+        [...]
+
+        public
+
+        def speak
+            # some abstract behavior might be here ...
+            local_speak
+        end
+
+        private
+
+        def local_speak
+            &quot;the #{self.class} has not implemented #{__method__}&quot;
+            # Note that this might require a different behavior, 
+            # depending on what the method is supposed to do.
+        end
+
+    end
+
+    class Dog &lt; Animal
+
+        private
+
+        def local_speak
+            &quot;Bark Bark&quot;
+        end
+
+        [...]
+
+    end
+
+    class Cat &lt; Animal
+
+        private
+
+        def local_speak
+            &quot;Meeew&quot;
+        end
+
+        [...]
+
+    end
+</code></pre><h4 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h4><p>Some of my take aways:</p>
+<ul>
+<li>Promote/specialize behavior.</li>
+<li>Abstract =&gt; Superclass, Concrete behavior =&gt; child class.</li>
+<li>Use Hook Method and Template Methods for initialization and defaulting. </li>
+<li>Pass messages between superclass and child.</li>
+</ul>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 7 Modules (and Inheritance, extended edition)">← Previous Post</a></li><li class="next"><a href="/2014/04/08/recursion-and-stacks/" data-toggle="tooltip" data-placement="top" title="Recursion and stack">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

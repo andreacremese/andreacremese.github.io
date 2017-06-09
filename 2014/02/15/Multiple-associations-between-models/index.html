@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Multiple associations between models</h1><p class="post-meta">Posted on Feb 15 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>In the quest to develp my application, and in a larger contest, it turned out I needed to esteablish <em>multiple connection between the same two models</em>. As it can be immagined, this woudl cause quite a stir - as computer tend to like univocity. After a bit of research I found an easy way to do it. And could it be otherwise, it’s rails we are talking about!!</p>
+<p>Ok, say we have two models, already linked with a <code>has_many :through</code> association, such as:</p>
+<pre><code class="ruby">class User &lt; ActiveRecord::Base
+  has_many :instrxps
+  has_many :instruments, through: :instrxps
+end
+
+class Instrument &lt; ActiveRecord::Base
+  has_many :instrxps
+  has_many :users, through: :instrxps
+end
+
+class Instrxp &lt; ActiveRecord::Base
+ belongs_to :user
+ belongs_to :instrument
+end
+</code></pre>
+<p>And say that you want to establish a new association between Users and Instruments, say called candidates. Candidates will be a separate table, with two foreign keys (user_id and instrument_id). Incidentally, this is the same structure than Instrxp, the already established through table. (Well, not soo much incidentally, this is the whole point of the post…)</p>
+<pre><code class="ruby">class User &lt; ActiveRecord::Base
+  has_many :instrxps
+  has_many :instruments, through: :instrxps
+  has_many :candidate
+  has_many :instruments, through: :candidates
+end
+
+class Instrument &lt; ActiveRecord::Base
+  has_many :instrxps
+  has_many :users, through: :instrxps  
+  has_many :candidates
+  has_many :users, through: :candidates
+end
+
+class Instrxp &lt; ActiveRecord::Base
+  belongs_to :user
+  belongs_to :instrument
+end
+
+class Candidates &lt; ActiveRecord::Base
+  belongs_to :user
+  belongs_to :instrument
+end
+</code></pre>
+<p>This will confuse rails. On the side, I have tested this a little bit. It seems that only the Instrxp is loaded (when errors are not trown at you). As we’s ay in Italy: nottagodda. <br>In all effects, what we are after is a way to be able to differenciate <em>@user.instruments</em> from <em>@users.candidates</em>. <br>The :source option in the definition of a new class comes into help. This option allows to specify a “source” module for a relationship with a non-existant fictitious  module, that will be the name of the new relationship. Harder to explain than to see in action. Our modules definition will become:</p>
+<pre><code class="ruby">class User &lt; ActiveRecord::Base
+  has_many :instrxps
+  has_many :instruments, through: :instrxps
+  has_many :candidate
+  has_many :candidate_instruments, through: :candidates, :source =&gt; :instrument
+end
+
+class Instrument &lt; ActiveRecord::Base
+  has_many :instrxps
+  has_many :users, through: :instrxps
+  has_many :candidates
+  has_many :candidate_users, through: :candidates, :source =&gt; :use
+end
+
+class Instrxp &lt; ActiveRecord::Base
+  belongs_to :user
+  belongs_to :instrument
+end
+
+class Candidate &lt; ActiveRecord::Base
+  belongs_to :user
+  belongs_to :instrument
+end
+</code></pre>
+<p>In this way <code>@user.instruments</code> will return the relationships though Instrxp, while <code>@user.candidate_instruments</code> will return the relarionship though Candidate. Nifty =).</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/03/06/Session-issue-in-rails-controller-test/" data-toggle="tooltip" data-placement="top" title="Session issue in rails controller test">← Previous Post</a></li><li class="next"><a href="/2014/01/11/Case-insensitive-search/" data-toggle="tooltip" data-placement="top" title="Case insensitive search">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

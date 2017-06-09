@@ -1,0 +1,2334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Andrea&#39;s Blog</title>
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://andreacremese.github.io/"/>
+  <updated>2017-06-09T00:08:05.000Z</updated>
+  <id>http://andreacremese.github.io/</id>
+  
+  <author>
+    <name>Andrea Cremese</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Discovering Java 8: first notes</title>
+    <link href="http://andreacremese.github.io/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"/>
+    <id>http://andreacremese.github.io/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/</id>
+    <published>2017-06-08T20:43:19.000Z</published>
+    <updated>2017-06-09T00:08:05.000Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="Discovering-Java-8-first-notes"><a href="#Discovering-Java-8-first-notes" class="headerlink" title="Discovering Java 8: first notes"></a>Discovering Java 8: first notes</h1><p><strong>a.k.a. lambda, static methods, default methods, functional interface</strong></p>
+<p>I just landed on planet <strong>smartsheet</strong> (a very cool Saas), and the job change brought me to get from C# to Java. While the two are very similar, there are a few quirks and watch its. It seems that Java 8 (now released in old 2014) introduced a few new interesting features.</p>
+<p>This post (which may become a series of) can be really classified as my personal notes on some of the aspects that I found new, interesting or surprising. It is a mixin of Java specifics, Java 8 specifics, and some of the first watch its for the c# developer that is getting in Java world.</p>
+<p>A code snippet is added at the end of the post for future reference. </p>
+<h2 id="Static-methods-on-interfaces"><a href="#Static-methods-on-interfaces" class="headerlink" title="Static methods on interfaces"></a>Static methods on interfaces</h2><p>Java does not have static classes, unless the static class is nested in another class. This means that the following <strong>is not supported</strong> in Java:</p>
+<pre><code>public static class MyMixIn() {
+    public static Int double(Int32 i) {
+        return 2 * i;
+    }
+}
+
+/// consumer, somewhere else in code 
+    Int32 result = MyMixIn.double(3);
+</code></pre><p>Nonetheless, Java allows this pattern on <code>interfaces</code> see Static Methods in the <a href="https://docs.oracle.com/javase/tutorial/java/IandI/defaultmethods.html#static" target="_blank" rel="external">specs]</a>. Meaning, the following is perfectly valid:</p>
+<pre><code>public interface MyMixIn() {
+    public static Integer double(Integer i) {
+        return 2 * i;
+    }
+}
+
+/// consumer, somewhere else in code 
+    Integer result = MyMixIn.double(3);
+</code></pre><p>Note that the mix in is of type <code>interface</code>.</p>
+<h2 id="Default-methods-on-interfaces"><a href="#Default-methods-on-interfaces" class="headerlink" title="Default methods on interfaces"></a>Default methods on interfaces</h2><p>Another quirk that interfaces allow in Java is providing default implementation for the methods it specifies. This functionality is probably the most surprising to me, on the notion that an interface should not really have any implementation associated with it. </p>
+<p>Its seems like this was added to allow rewriting of some of the languages interfaces, without breaking the code that actually inherits from them (from the <a href="https://docs.oracle.com/javase/tutorial/java/IandI/defaultmethods.html" target="_blank" rel="external">specs</a>). This remains surprising to me, but the reason behind may be tied to the preventing breaking changes to existing interfaces. Java does allows for implementation of multiple interfaces, but single inheritance.</p>
+<p>Now, the default method only works when you instantiate an anonymous class newing up the interface (see below). If you do the following, the <strong>super</strong> will call the Parent class.</p>
+<pre><code>@FunctionalInterface
+public interface MyPredicate&lt;String&gt; {
+    boolean test(String t);
+
+    default boolean test(String t) {
+        return t.length() &gt; 4;
+    }
+}
+
+// Parent
+public class Parent {
+    public boolean test(String s) {
+        return s.length() &gt; 7;
+    }
+}
+
+// Child
+// note that both the Parent and the interface have an implementation of .test
+public class Child extends Parent implements MyPredicate&lt;String&gt; {
+    public boolean test(String s) {
+        return super.test(s);
+    }
+}
+
+// test
+@Test
+public void ensureParentInherits(){
+    // arrange
+    Child c = new Child();
+    // test
+    boolean result4 = c.test(&quot;1234&quot;);
+    boolean result8 = c.test(&quot;12345678&quot;);
+    // expecting parent to win
+    assertFalse(&quot;interface got implemented instead&quot;, result4);
+    assertTrue(&quot;interface got implemented instead&quot;, result8);
+}
+</code></pre><h2 id="Newing-up-interfaces-in-anonymous-classes"><a href="#Newing-up-interfaces-in-anonymous-classes" class="headerlink" title="Newing up interfaces in anonymous classes"></a>Newing up interfaces in anonymous classes</h2><p>Java has the concept of anonymous classes. An anonymous class is a class that is declared and instantiated at the same time (from the <a href="https://docs.oracle.com/javase/tutorial/java/javaOO/anonymousclasses.html" target="_blank" rel="external">specs</a>). This is usually implemented by “newing up an interface” (yes, you read it right):</p>
+<pre><code>    static void compareWithAnonymousClass(String[] strings) {
+
+        Comparator&lt;String&gt; comp = new Comparator&lt;String&gt;() {
+            public int compare(String s1, String s2) {
+                return Integer.compare(s1.length(), s2.length());
+            }
+        };
+        Arrays.sort(strings, comp);
+    }
+
+    // The signature of Compare is
+    public interface Comparator&lt;T&gt; {
+        //...
+    }
+</code></pre><p>At first this sounds confusing (newing up an interface?!?!?!?!?) and not very performant (it does smell like boxing and unboxing would come up the pike). Actually, when compiled, the anonymous class generates a separate class, therefore not having any performance hit. </p>
+<p>On the confusing side, this sounds like a piece of functionality that can get easily abused, but in the right hands may actually prevent the requirement to create return classes / DTOs / similar that would have a single use.</p>
+<h2 id="Functional-Interfaces-and-lambda-expressions"><a href="#Functional-Interfaces-and-lambda-expressions" class="headerlink" title="Functional Interfaces and lambda expressions"></a>Functional Interfaces and lambda expressions</h2><p>This sounds like the Java’s response to (very powerful) idea of <em>delegates</em> in c#. A functional interface is an interface with <strong>only one abstract method</strong> from the <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/FunctionalInterface.html" target="_blank" rel="external">specs</a>. As a result, when you new it up (see previous point), you can pass a single <strong>lambda expression</strong> as a method implementation, and the compiler knows that (by default) that is the method that is implemented.</p>
+<p>Meaning:</p>
+<pre><code>// MyPredicate.java
+// a personal implementation of Predicate
+@FunctionalInterface
+public interface MyPredicate&lt;T&gt; {
+    boolean test(T t);
+}
+
+//...
+
+// ConsumerWithAnonymousClass.java
+    MyPredicate&lt;String&gt; p1 = new MyPredicate&lt;String&gt;() {
+        public boolean test(String s) {
+            return s.length() &gt; 5;
+        }
+    };
+
+//...
+
+// Consumer with lambda
+    MyPredicate&lt;String&gt; p1 = str -&gt; str.length() &gt; lo;
+</code></pre><p>Note that the specification do require only one abstract method for an interface to qualify as a <strong>functional interface</strong>. Meaning, the interface can have default methods and / or static methods and still qualify as a functional interface (see the example at the end of the page.</p>
+<h2 id="Method-reference"><a href="#Method-reference" class="headerlink" title="Method reference"></a>Method reference</h2><p>This is a nifty shortcut which, at first, looks very confusing (especially with some experience in Ruby and Rails). This is a specific sintax to call a method in a class in a lambda expression (see <a href="https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html" target="_blank" rel="external">specs</a>).</p>
+<p>Meaning, the two following lines are absolutely equivalent:</p>
+<pre><code>
+// lambda with method call
+Function&lt;Person, Integer&gt; f = person -&gt; person.GetAge ();
+
+// method reference
+Function&lt;Person, Integer&gt; f = Person::GetAge ;
+</code></pre><h2 id="Wrapping-up"><a href="#Wrapping-up" class="headerlink" title="Wrapping up"></a>Wrapping up</h2><p>An example of a functional interface, with default AND static methods.</p>
+<pre><code>@FunctionalInterface
+public interface MyPredicate&lt;T&gt; {
+    boolean test(T t);
+
+    default MyPredicate&lt;T&gt; and(MyPredicate&lt;T&gt; other) {
+        return t -&gt; test(t) &amp;&amp; other.test(t);
+    }
+
+    default MyPredicate&lt;T&gt; or(MyPredicate&lt;T&gt; other) {
+        return t -&gt; test(t) || other.test(t);
+    }
+
+    // with a single type
+    static MyPredicate&lt;String&gt; isEqualString(String string) {
+        return s -&gt;  s.equals(s);
+    }
+
+    // with generics
+    static &lt;U&gt; MyPredicate&lt;U&gt; isEqual(U u) {
+        return s -&gt;  s.equals(u);
+    }
+}
+</code></pre><p>Example of the consumer of said interface:</p>
+<pre><code>    static Boolean lengthBetweenTwoIntergers(String s, Integer lo, Integer hi) {
+        // using anonymous class
+        MyPredicate&lt;String&gt; p1 = new MyPredicate&lt;String&gt;() {
+            public boolean test(String s) {
+                return s.length() &gt; lo;
+            }
+        };
+        // using only method in the functional interface 
+        MyPredicate&lt;String&gt; p2 = str -&gt; str.length() &lt; hi;
+        // using default method implementation
+        MyPredicate&lt;String&gt; p3 = p1.and(p2);
+        return p3.test(s);
+    }
+
+    // using a static method
+    public Boolean isEqualToOne(Integer i){
+        MyPredicate&lt;Integer&gt; p1 = MyPredicate.isEqual(1);
+        return i.test(1)
+    }
+</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;Discovering-Java-8-first-notes&quot;&gt;&lt;a href=&quot;#Discovering-Java-8-first-notes&quot; class=&quot;headerlink&quot; title=&quot;Discovering Java 8: first notes&quot;
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Mongo  | Sql, a comparison</title>
+    <link href="http://andreacremese.github.io/2016/09/26/Mongo-Sql-a-comparison/"/>
+    <id>http://andreacremese.github.io/2016/09/26/Mongo-Sql-a-comparison/</id>
+    <published>2016-09-26T17:44:35.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>One of the questions that often crops up at the outset of a greenfield project is if to choose Relational or Not Only Relational data persistance. In this article I will present a comparison of the two technologies concerning an actual (simplified) business case stemming from a Line of Business Application I am currently working on.</p>
+<p>The results thus far favour MongoDB, either in its C# or NodeJS implementation. The SQL implementation took 60 % longer to conclude the required query - refer to the results below. In terms of “bang for bucks” (speed VS lines of code) node’s result is truly amazing. </p>
+<p>This is a work in progress, but I wanted to share the results I gathered so far.</p>
+<h2 id="Exec-summary"><a href="#Exec-summary" class="headerlink" title="Exec summary"></a>Exec summary</h2><h3 id="Outline"><a href="#Outline" class="headerlink" title="Outline"></a>Outline</h3><p>This quick study contrasts three different implementations to resolve the same business problem: find all objects in a table related to a certain other entity. The sample case assumed is that <code>Reports *&lt;--------&gt;* Engineers</code> (see image below). The test query is basically “find all reports that have an engineer with a certain name”, assuming the engineer’s _id is not known.</p>
+<p><img src="/images/relationships.png" alt="Relationships"></p>
+<p>The three implementations under test were:</p>
+<ul>
+<li>Sql, C#, Entity Framework 6.1.</li>
+<li>MongoDB 3.3.4, C# MongoDriver</li>
+<li>MongoDB 3.3.4, Node MongoDriver.</li>
+</ul>
+<p>SQL and MongoDB cannot be readily compared in terms of performance, therefore the comparison is made in terms of the monthly cost in Azure. The same budget was allocated for SQL and MongoDB (~15 $/mo). </p>
+<p>The load testing was done with the <a href="https://www.npmjs.com/package/loadtest" target="_blank" rel="external">NPM load test tool</a>, assuming 4 concurrent queries, which is the forecasted load profile at the outset. 5000 Reports were seeded in the collection tested.</p>
+<h3 id="Results"><a href="#Results" class="headerlink" title="Results"></a>Results</h3><p>A preliminary analysis of the implementation proposed shows that the MongoDb implementation is faster than SQL in retrieving the required data, provided MongoDB &gt; 3.3.4 is used. NodeJS is slightly slower than the C# implementation, by a small margin.</p>
+<p><img src="/images/comparison.jpg" alt="Results"></p>
+<p>Interesting to note that with MongoDb =&lt; 3.3.4 the aggregation on two collections needs to <em>$unwind</em> the nested collection, therefore making the handling the results difficult (as they would require to be re aggergated). <a href="https://jira.mongodb.org/browse/SERVER-22881" target="_blank" rel="external">This was changed from 3.3.4 onwards</a>. The easiest solution using Mongo &lt; 3.3.4 was to lookup the connected collection for the relevant entry. This was tested and it performed much worse than any other implementation (SQL or Mongo).</p>
+<h2 id="Architecture-rundown"><a href="#Architecture-rundown" class="headerlink" title="Architecture rundown"></a>Architecture rundown</h2><p>Please refer to this <a href="https://github.com/andreacremese/mongosql" target="_blank" rel="external">github repo</a>. </p>
+<p>The two C# access layers (EF 6.1 and MongoDriver) share the same API RESTful project. The Node access layer is wrapped into an Express API. The C# access layer share the the solution with the POCOs (for EF) and the driver layers.</p>
+<p>The two API projects (C# and NodeJS) are deployed to two separate Azure App Services, with the same budget and in the same geographic location.</p>
+<p>The databases tested are:</p>
+<ul>
+<li>SQL database on Azure, S0 size . Cost at the time of writing:  15 $ / mo.</li>
+<li>MongoDB 3.3.4, deployed on an Standard A0 Virtual machine hosted in Azure, Ubuntu 16.04.  Cost at the time of writing : 13.39 $ / mo.</li>
+</ul>
+<h2 id="C-EF-implementation"><a href="#C-EF-implementation" class="headerlink" title="C# - EF implementation"></a>C# - EF implementation</h2><p>The POCOs are set up as follows:</p>
+<pre><code>public class Report {
+    public Report() {
+        Engineers = new List&lt;Engineer&gt;();
+    }
+    public Int32 Id { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public String Title { get; set; }
+    public ICollection&lt;Engineer&gt; Engineers { get; set; }
+    public Topic Topic { get; set; }
+    public Partner Partner { get; set; }
+}
+
+// ...
+
+public class Engineer {
+    public Int32 Id { get; set; }
+    [Index]
+    [MaxLength(40)]
+    public String Name { get; set; }
+    [Index]
+    [MaxLength(40)]
+    public String Email { get; set; }
+    public ICollection&lt;Report&gt; Reports { get; set; }
+}
+</code></pre><p>Note that engineer’s name and email are indexed (via EF). Please refer to the migrations generated for details.</p>
+<p>The C# RESTful service accesses the resource passing in the Linq query required. For example, this is the controller method to retrieve all reports with a certain engineer name:</p>
+<pre><code>[Route(&quot;reportsbyengineername&quot;)]
+[HttpGet]
+public HttpResponseMessage getReportsByEngineer(string engineerName) {
+    return Request.CreateResponse(HttpStatusCode.OK,
+        _repo.getReports(r =&gt; r.Engineers.Any(e =&gt; e.Name == engineerName))
+        .Select(rep =&gt; _mapper.mapReport(rep)));
+}
+</code></pre><p>The repo’s method is as follows:</p>
+<pre><code>public List&lt;Report&gt; getReports(Expression&lt;Func&lt;Report, bool&gt;&gt; lambda) {
+    using (var context = new dbpContext()) {
+        context.Configuration.ProxyCreationEnabled = false;
+        var linqQuery = context.Reports
+            .AsNoTracking()
+            .Include(rep =&gt; rep.Engineers)
+            .Include(rep =&gt; rep.Topic)
+            .Include(rep =&gt; rep.Partner)
+            .Where(lambda);
+        return linqQuery.ToList();
+    }
+}
+</code></pre><p>Note that the mapping in the controller (<code>.Select</code> Linq method) required in order to prevent a circular structure for the response. </p>
+<p>This architecture was chosen because it allows to pass in and compose queries in an additive fashion, for example:</p>
+<pre><code>[Route(&quot;reports&quot;)]
+[HttpGet]
+public HttpResponseMessage getReports(
+    String engineer = &quot;&quot;, 
+    String start = &quot;&quot;, 
+    String end=&quot;&quot;, 
+    String topic = &quot;&quot;,
+    String partner = &quot;&quot;,
+    String enginerId = &quot;&quot;,
+    String partnerId = &quot;&quot;,
+    String topicId = &quot;&quot;,
+    String engineerId = &quot;&quot;) {
+
+    var startDate = start == &quot;&quot; ? new DateTime(2014, 01, 01) : DateTime.Parse(start);
+    var endDate = end == &quot;&quot; ? DateTime.Now : DateTime.Parse(end);
+    Expression&lt;Func&lt;Report, bool&gt;&gt; expression = r =&gt; r.StartDate &lt; endDate &amp;&amp; r.EndDate &gt; startDate;
+
+    if (engineer != &quot;&quot;) {
+        expression = expression.And(r =&gt; r.Engineers.Any(e =&gt; e.Name.Contains(engineer) || e.Email.Contains(engineer)));
+    }
+
+    if (topic != &quot;&quot;) {
+        expression = expression.And(r =&gt; r.Topic.Name.Contains(topic));
+    }
+
+    if (partner != &quot;&quot;) {
+        expression = expression.And(r =&gt; r.Partner.Name.Contains(partner));
+    }
+
+    Int32 eId;
+    if (Int32.TryParse(engineerId, out eId)) {
+        expression = expression.And(r =&gt; r.Engineers.Any(e =&gt; e.Id == eId));
+    }
+
+    Int32 tId;
+    if (Int32.TryParse(topicId, out tId)) {
+        expression = expression.And(r =&gt; r.Topic.Id == tId);
+    }
+
+    Int32 pId;
+    if (Int32.TryParse(partnerId, out pId)) {
+        expression = expression.And(r =&gt; r.Partner.Id == pId);
+    }
+
+    return Request.CreateResponse(HttpStatusCode.OK, 
+        _repo.getReports(expression)
+        .Select(rep =&gt; _mapper.mapReport(rep)));
+}
+</code></pre><h3 id="C-MongoDriver-Implementation"><a href="#C-MongoDriver-Implementation" class="headerlink" title="C# - MongoDriver Implementation"></a>C# - MongoDriver Implementation</h3><p>For the time being the implementation in the <code>MongoDriver</code> is as follows, with the aggregation performed explicitly.</p>
+<pre><code>public async Task&lt;List&lt;BsonDocument&gt;&gt; GetReportsByPartnerName(String partnerName) {
+            var collection = _database.GetCollection&lt;MongoReport&gt;(_reportsCollection);
+            var aggregate = collection.Aggregate()
+                .Lookup(&quot;engineers&quot;, &quot;EngineerIds&quot;, &quot;_id&quot;, &quot;engineer_docs&quot;)
+                .Lookup(&quot;partners&quot;, &quot;PartnerId&quot;, &quot;_id&quot;, &quot;partner_doc&quot;)
+                .Match(new BsonDocument { { &quot;partner_doc.Name&quot;, partnerName } });
+            return await aggregate.ToListAsync();
+        }
+</code></pre><p><strong> Note that the aggregation above would not work on Mongo &lt; 3.3.4, because .aggregate requires to $unwind the embedded list, creating a duplicate of each report for each engineer connected.</strong></p>
+<p>As a side note, the Mongo implementation without the aggregation and with the manual lookups for the engineers have been tested with Mongo 3.2.9. Its performance was (much) slower than the aggregation version and slower than the EF SQL version. So, for many to many connection where the documents have to be kept in separate collections, don’t use lookups BUT use .aggregation!</p>
+<h3 id="Node-MongoDriver-Implementation"><a href="#Node-MongoDriver-Implementation" class="headerlink" title="Node - MongoDriver Implementation"></a>Node - MongoDriver Implementation</h3><p>This is very minimal, the whole <code>server.js</code> file is as follows.</p>
+<pre><code>var express = require(&#39;express&#39;);
+var app = express();
+var MongoClient = require(&#39;mongodb&#39;).MongoClient;
+var connectionString = process.env.mongoConectionString || require(&#39;./connectionString.js&#39;);
+
+app.get(&#39;/api/mongo/reportsbyengineername/:engName&#39;, function (req, res) {
+
+    var engName = req.params.engName;
+
+    MongoClient.connect(connectionString, function(err, db) {
+        if (err) {
+            console.log(err);
+            res.status(400).send(err);
+            return;
+        }
+        var collection = db.collection(&quot;reports&quot;);
+        collection.aggregate(
+        [
+            {$lookup : { from : &quot;engineers&quot;, localField : &quot;EngineerIds&quot;, foreignField : &quot;_id&quot;, as : &quot;engineer_docs&quot;}},
+            {$lookup : { from : &quot;partners&quot;, localField : &quot;PartnerId&quot;, foreignField : &quot;_id&quot;, as : &quot;partner_doc&quot;}},
+            {$match : {&quot;engineer_docs.Name&quot; : engName}},
+        ]).toArray(function (err, docs) {
+            res.send(docs);
+        })
+    });
+})
+
+app.get(&#39;/api/test&#39;, function (req, res) {
+    res.status(200).send(&quot;OK&quot;);
+} )
+
+
+var port = process.env.PORT || 3000;
+app.listen(port);
+</code></pre><h1 id="Results-1"><a href="#Results-1" class="headerlink" title="Results"></a>Results</h1><p><img src="/images/comparison.jpg" alt="Results"></p>
+<p>In terms of MongoDB, it is interesting to note that Node’s fastest queries were faster than the C# counterpart, with half of them complete 1/2 % faster, but the slowest were slower by some 6%.</p>
+<p>For this application and with this implementation, SQL was slower across the board, with the fastest 50% queries in SQL still slower than the residual 1% in MongoDB.</p>
+<h1 id="Future-developments"><a href="#Future-developments" class="headerlink" title="Future developments"></a>Future developments</h1><p>In the current implementation Mongo is deployed in a virtual machine, not as a service (for example, in MongLab). In order to provide a more fair comparison in terms of budget, a solution where Mongo (&gt; 3.3.4) can be deployed as a service will be required.</p>
+<p>The EF implementation is based off the excellent Pluralsight course <a href="https://www.pluralsight.com/courses/entity-framework-6-getting-started" target="_blank" rel="external">Getting Started with Entity Framework</a>. The EF implementation will need to be reviewed for potential improvements.</p>
+<p>The virtual machine where MongoDB is deployed to is in Central US (in order to use Classic VMs), while the Database is deployed in West US. As the tests are done in Seattle, this is an advantage for the relational solution. </p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;One of the questions that often crops up at the outset of a greenfield project is if to choose Relational or Not Only Relational data per
+    
+    </summary>
+    
+    
+      <category term="C#" scheme="http://andreacremese.github.io/tags/C/"/>
+    
+      <category term="Entity Framework" scheme="http://andreacremese.github.io/tags/Entity-Framework/"/>
+    
+      <category term="MongoDb" scheme="http://andreacremese.github.io/tags/MongoDb/"/>
+    
+      <category term="SQL" scheme="http://andreacremese.github.io/tags/SQL/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>First gulpfile for angular 2</title>
+    <link href="http://andreacremese.github.io/2016/09/21/first-gulpfile-for-angular-2/"/>
+    <id>http://andreacremese.github.io/2016/09/21/first-gulpfile-for-angular-2/</id>
+    <published>2016-09-21T23:37:27.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Angular 2 came out a few days ago and I am really excited be implementing on a Line of Business App. First stop was the very funny and entertaining <strong>tour of heroes</strong> tutorial but, as soon as that was done, I found myself “yearning” to start with the a pipeline to have NG2 operational in the dev team.</p>
+<p>First step is automate transpiling, copying and livereload, a musts for development. Also, I noticed that after a few components were added, the <code>app/</code> folder grew dramatically. </p>
+<p>After a bit of tinkering, I came up with a <code>gulpfile</code> that:</p>
+<ul>
+<li>Keeps the workspace clean (who wants <code>.js.map</code> and <code>.js</code> files in the way in a NG2 and typescript project??).</li>
+<li>Allows for livereload.</li>
+<li>Waits for the transpiling &amp; copying to the <code>bin/</code> folder before reloading (otherwise, the browser will miss files).</li>
+</ul>
+<pre><code>// fist gulp file for NG2 - am sure it will grow very substantially.
+const gulp = require(&#39;gulp&#39;);
+const del = require(&#39;del&#39;);
+const shell = require(&#39;gulp-shell&#39;);
+const server = require(&#39;gulp-server-livereload&#39;);
+const livereload = require(&#39;gulp-livereload&#39;);
+
+gulp.task(&#39;clean&#39;, function () {
+  return del(&#39;bin/**/*&#39;);
+});
+
+gulp.task(&#39;copyFiles&#39;, [&#39;transpile&#39;], function () {
+    gulp.src([&#39;app/**/*.html&#39;, &#39;app/**/*.css&#39;])
+    .pipe(gulp.dest(&#39;bin&#39;))
+    .pipe(livereload());
+})
+
+gulp.task(&#39;transpile&#39;, [&#39;clean&#39;], shell.task(&#39;tsc&#39;));
+
+gulp.task(&#39;livereload&#39;, [&#39;copyFiles&#39;], function() {
+  livereload.listen();
+  gulp.watch(&#39;app/*&#39;, [&#39;copyFiles&#39;]);
+});
+
+// this is the entry point
+gulp.task(&#39;webserver&#39;, [&#39;livereload&#39;], function() {
+  gulp.src(&#39;.&#39;)
+    .pipe(server({
+        livereload : true,
+        directoryListing: false,
+        open: true,
+        port: 8000,
+        fallback: &#39;index.html&#39;
+    }));
+});
+
+gulp.task(&#39;default&#39;,[&#39;webserver&#39;]);
+</code></pre><p>I have tried for a bit to use a gulp typescript and I decided for the time being to remain with tsc, so here’s the <code>tsconfig.json</code> file.</p>
+<pre><code>// matching tsconfig.json
+{
+  &quot;compilerOptions&quot;: {
+    &quot;target&quot;: &quot;es5&quot;,
+    &quot;module&quot;: &quot;commonjs&quot;,
+    &quot;moduleResolution&quot;: &quot;node&quot;,
+    &quot;sourceMap&quot;: true,
+    &quot;emitDecoratorMetadata&quot;: true,
+    &quot;experimentalDecorators&quot;: true,
+    &quot;removeComments&quot;: false,
+    &quot;noImplicitAny&quot;: false,
+    &quot;outDir&quot;: &quot;./bin&quot;
+  },
+  &quot;exclude&quot;: [
+    &quot;node_modules&quot;
+  ]
+}
+</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Angular 2 came out a few days ago and I am really excited be implementing on a Line of Business App. First stop was the very funny and en
+    
+    </summary>
+    
+    
+      <category term="JS" scheme="http://andreacremese.github.io/tags/JS/"/>
+    
+      <category term="typescript" scheme="http://andreacremese.github.io/tags/typescript/"/>
+    
+      <category term="NG2" scheme="http://andreacremese.github.io/tags/NG2/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>What is -this- (in JS)?</title>
+    <link href="http://andreacremese.github.io/2016/08/22/What-is-this/"/>
+    <id>http://andreacremese.github.io/2016/08/22/What-is-this/</id>
+    <published>2016-08-22T22:11:44.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>In this brief article I’ll discuss on the subject of <code>this</code> in JS’s function execution context. There is quite a number of guides on this (very important) subject, but after some reading I decided it was worth putting down ‘my’ approach (see the disclaimer) to this subject. </p>
+<h1 id="So-what-is-this"><a href="#So-what-is-this" class="headerlink" title="So, what is this?"></a>So, what is this?</h1><blockquote>
+<p>Inside a function, the value of this depends on how the function is called (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" target="_blank" rel="external">MDN this</a>).</p>
+</blockquote>
+<p>The <strong>ordered</strong> list of rules I use to ascertain what <code>this</code> is bound to in a function’s execution context are below. </p>
+<p>I consider that <code>this</code>:</p>
+<ol>
+<li><strong>DEFAULTS</strong> to global or window (or it is undefined if in <code>strict mode</code>).<center><em>unless</em></center></li>
+<li>Is <strong>IMPLICITLY</strong> assigned to the object’s instance, if the function is an object’s method.<center><em>unless</em></center></li>
+<li>Is <strong>EXPLICITLY</strong> assigned in case the function has been called with a method like <code>.bind</code>, <code>.call</code> or <code>.apply</code><center><em>unless</em></center></li>
+<li>It is bound to a <strong>NEW</strong> object if the execution function is used as a constructor (in this case it is returned implicitly to the caller).</li>
+</ol>
+<p>Let’s look at them in detail.</p>
+<h1 id="1-Default"><a href="#1-Default" class="headerlink" title="1. Default"></a>1. Default</h1><p>Unelss any of the other cases below applies, in non strict mode <code>this</code> refers to the <code>Window</code> object in the browser, or to the <code>global</code> object in NodeJS. </p>
+<pre><code>function prova() {
+    this.name = &quot;andrea&quot;; 
+};
+
+prova();
+
+console.log(name) // -&gt; andrea
+</code></pre><p>In the example above the <code>name</code> variable ended up in the global scope’s <code>this</code>, as the window/global object is boxed and passed into the function whenever no value is explicitly specified to be bound for <code>this</code>.</p>
+<p>Exception to the rule above is if the script has turned JS into strict mode, specifying the <code>&#39;use strict&#39;</code>. In this case, <em>the value passed as <code>this</code> to a function in strict mode is not boxed and not forced into being an object at all, in fact it remains undefined</em>.</p>
+<pre><code>&quot;use strict&quot;;
+function prova() {
+    this.name = &quot;andrea&quot;; 
+};
+
+prova() // -&gt; Type Error - Cannot set property &#39;name&#39; of undefined
+
+// Because
+
+&#39;use strict&#39;
+function firstTry() {
+    return this;
+}
+
+firstTry() === undefined; // -&gt; true
+
+// Just to be sure - strict repeated for clarity as repetita juvant
+&#39;use strict&#39;
+function secondTry() {
+    console.log(this);
+}
+
+secondTry(); // -&gt; undefined
+</code></pre><p>This was introduced in  ECMA 5.1 in 2011, mainly due to security (prevent access to the window object, where confidential info may be stored) and performance issues (boxing and unboxing) <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode" target="_blank" rel="external">MDN Strict mode</a>. Note that using a function as a constructor will change this behaviour, as we will see later.</p>
+<h1 id="2-Implicit"><a href="#2-Implicit" class="headerlink" title="2. Implicit"></a>2. Implicit</h1><p>The binding of <code>this</code> is implicitly made to the object’s instance for methods.</p>
+<pre><code>var person = { 
+    name : &#39;Andrea&#39;,
+    greet: function (){
+        console.log(&quot;Hello I am &quot; + this.name)
+    }
+}
+person.greet() // -&gt; Hello I am Andrea
+</code></pre><p>Keep in mind that this will work with shorthand notation BUT will not worked the same with arrow functions, as the latter bind to the lexical scope they are ran into.</p>
+<pre><code>// shorthand version
+var person = { 
+    name : &#39;Andrea&#39;,
+    greet() {
+        console.log(&quot;Hello I am &quot; + this.name)
+    }
+}
+person.greet(); // -&gt; Hello I am Andrea
+
+// Arrow functions DON&#39;T BIND this to the object, hence you will get the binding to the global scope.
+var name = &#39;Enrico&#39;;
+var person = {
+    name : &#39;Andrea&#39;,
+    greet : () =&gt; { console.log(&quot;Hello I am &quot; + this.name);}
+} 
+
+person.greet() // -&gt; Hello I am Enrico
+</code></pre><h1 id="3-Explicitly"><a href="#3-Explicitly" class="headerlink" title="3. Explicitly"></a>3. Explicitly</h1><p>The <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="external"><code>.call</code></a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply" target="_blank" rel="external"><code>.apply</code></a> methods were introduced very early to the <code>Function.prototype</code> (with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/New_in_JavaScript/1.3" target="_blank" rel="external">JS 1.3 in 1998</a>), while the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="external"><code>.bind</code></a> method was introduced much later (in 2010 with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/New_in_JavaScript/1.8.5" target="_blank" rel="external">JS 1.8.5</a>). </p>
+<p>These three methods provide a manner to bind <strong>explicitly</strong> the <code>this</code> keyword to an arbitrary object (or <code>undefined</code>, if needed). Note that they don’t all work in the same manner, as <code>.call</code> and <code>.apply</code> execute the function, while <code>.bind</code> simply provide the binding without execution, returning an exotic function object (basically, a function which can be then executed);</p>
+<pre><code>function some (arg) {
+    console.log(&quot;I am &quot; + this.name + &quot; and I was given &quot; + arg);
+}
+
+some.apply({name : &quot;Andrea&quot;}, [&quot;an ice cream&quot;]); // -&gt; I am Andrea and I was given an ice cream
+
+some.bind({name : &quot;Andrea&quot;})(&quot; cookies!!!&quot;); // -&gt; I am Andrea and I was given  cookies!!!
+</code></pre><p>Looking back at the implicit binding of <code>this</code>, we can see that explicit binding (for example using <code>.bind</code>) takes precedence.</p>
+<pre><code>function greet(){
+        console.log(&quot;Hello I am &quot; + this.name)
+}
+
+// with no .bind
+var person1 = { 
+    name : &#39;Antonio&#39;,
+    greet: greet
+}
+person1.greet(); // -&gt; Hello I am Antonio
+
+// with .bind
+var person = { 
+    name : &#39;Andrea&#39;,
+    greet: greet.bind({name : &#39;Enrico&#39;})
+}
+person.greet(); // -&gt; Hello I am Enrico
+</code></pre><h1 id="4-New-function-constructor"><a href="#4-New-function-constructor" class="headerlink" title="4. New (function constructor)"></a>4. New (function constructor)</h1><p>Every function in Javascript is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" target="_blank" rel="external">constructor</a> and since <a href="http://www.ecma-international.org/ecma-262/6.0/#sec-new-operator" target="_blank" rel="external">ECMA 6 introduced it</a>, the <code>new</code> operator can be used with all functions. Whent a function is <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new" target="_blank" rel="external"><code>newed</code></a> the following three things happen in sequence: </p>
+<ol>
+<li>An object is created, and bound through the inheritance (prototype, more appropriately!) chain to the <code>prototype</code> of the function (which is another object).</li>
+<li>The function is run, with the <code>this</code> reference bound to the newly created object.</li>
+<li>Unless the function returns explicitly, the object created at point 1 and bound at point 2 is returned to the caller.</li>
+</ol>
+<p>So, lifted straight out of MDN’s examples:</p>
+<pre><code>function Person(name, age) {
+  // implicitly var this = {};
+  // implicitly, as sudo code, this.__proto__ = Person.prototype; 
+  this.name = name;
+  this.age = age;
+  // return this;
+}
+
+var me = new Person(&quot;andrea&quot;, 99);
+// Person implicitly returns the `this` that is created. 
+me.name; // -&gt; andrea
+</code></pre><h2 id="Disclaimer"><a href="#Disclaimer" class="headerlink" title="Disclaimer"></a>Disclaimer</h2><p>This post is an adaptation and cherry picking from <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" target="_blank" rel="external">MDN site</a> as well as <a href="https://www.pluralsight.com/courses/advanced-javascript" target="_blank" rel="external">Kyle Simpson’s excellent advanced JS course</a>, which I strongly suggest anyone to watch.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;In this brief article I’ll discuss on the subject of &lt;code&gt;this&lt;/code&gt; in JS’s function execution context. There is quite a number of gui
+    
+    </summary>
+    
+    
+      <category term="JS" scheme="http://andreacremese.github.io/tags/JS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>The case for named functions expressions</title>
+    <link href="http://andreacremese.github.io/2016/08/18/Named-functions-expressions/"/>
+    <id>http://andreacremese.github.io/2016/08/18/Named-functions-expressions/</id>
+    <published>2016-08-19T00:04:36.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>JS developers use function expression in a myriad of cases: from handlers to callbacks. In this brief article, inspired by <a href="https://twitter.com/getify" target="_blank" rel="external">@getify</a>, I advocate the use of <strong>namedfunction expression</strong>  in Lieu if just function expressions (anonymous function).</p>
+<p>As a refresher, inspired by <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function" target="_blank" rel="external">mozilla development network</a>:</p>
+<pre><code class="javascript">function log() {
+    console.log(&quot;I am a function declaration&quot;);
+}
+
+var fun = function () {
+    console.log(&quot;I am a function expression&quot;);
+};
+
+var fun2 = function fun2(){
+    console.log(&quot;I am a named function expression!&quot;)
+};
+</code></pre>
+<p>And just as a further refresher, function declaration are <strong>hoisted</strong>. Extremely briefly: Javascript code is analyzed before being executed and, during this passage, the bindings for the variables and functions declarations are created in the current scope (or the global scope, if you are not in <code>strict mode</code> and start assigning values to variables that are not yet declared).</p>
+<p>In the case of function declarations, the body of the function is as well hoisted, while for variables they initially are undefined. This makes function which are declared available for use before they are actually declared. Function expressions are treated like a variable, with a binding being created by having the undefined value. </p>
+<p>Also, declaration do not need a semicolon afterwards, while expressions should be followed by a semicolon. I know that this is not critical thanks to <a href="http://www.ecma-international.org/ecma-262/5.1/#sec-7.9" target="_blank" rel="external">automatic semicolon insertion</a>, but it is still worth mentioning - especially if you have a Linter on.</p>
+<h1 id="The-case-for-Named-Function-Expression"><a href="#The-case-for-Named-Function-Expression" class="headerlink" title="The case for Named Function Expression"></a>The case for Named Function Expression</h1><p>Now, using named function expressions seems a bit redundant. What seems to be wrong about just shoving an anonymous function in a variable? <strong>The reason to use named function expression is mainly to facilitate debugging.</strong></p>
+<p>When an unhandled exception is thrown by a function expression, the stack trace usually looks something like <code>VM224:2 Uncaught  ReferenceError: name is not defined (anonymous function) @ VM224:2</code>. In all effects, all we know is that there is an anonymous function that threw. Very helpful…</p>
+<p>Aggravating the situation, if the function / handler is buried deep into the code base, the stack trace at the exception may be half a dozen anonymous functions - making debugging a real treat. </p>
+<p>If the function is named, the error is much more meaningful. In addition, the code is more verbose and self documenting for our fellow developers. </p>
+<pre><code class="javascript">var user = {
+    name : &quot;Andrea&quot;
+};
+
+// function expression
+setTimeout(function () {
+    console.log(user.credentials.name);
+}, 1000);
+
+// will throw Uncaught TypeError: Cannot read property &#39;name&#39; of undefined (anonymous function) @ VM503:7
+
+
+// function expression
+setTimeout(function getUserName() {
+    console.log(user.credentials.name);
+}, 1000);
+
+// will instead throw a more useful exception with the name of the throwing function
+// VM504:3 Uncaught TypeError: Cannot read property &#39;name&#39; of undefined getUserName @ VM504:3
+
+
+
+//... for iifes too!
+(function someNewNameHere() {
+    throw new Error(&quot;Now you know when it throws!&quot;);
+}());
+
+// VM672:2 Uncaught Error: Now you know when it throws!(…)someNewNameHere @ VM672:2(anonymous function) @ VM672:3
+</code></pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;JS developers use function expression in a myriad of cases: from handlers to callbacks. In this brief article, inspired by &lt;a href=&quot;https
+    
+    </summary>
+    
+    
+      <category term="JS" scheme="http://andreacremese.github.io/tags/JS/"/>
+    
+      <category term="Best Practices" scheme="http://andreacremese.github.io/tags/Best-Practices/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Tfs or git?</title>
+    <link href="http://andreacremese.github.io/2016/08/16/tfs-or-git/"/>
+    <id>http://andreacremese.github.io/2016/08/16/tfs-or-git/</id>
+    <published>2016-08-16T21:24:59.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>There is a large amount of blog posts on the subject <code>TFS vs GIT</code>. I have experience using both, the former usually crops up when dealing with large legacy code bases of long running projects. The latter is the default choice for open source projects (in GitHub) and as well for proprietary projects (GitHub private repos, Visual Studio Online).</p>
+<p>Regardless the amount of documentation already present on the subject, organizational change pivots on communication (as my Change Management professor kept going on repeating). With this post I’d like to aggregate in a bite size form the pros and cons of TFS vs GIT.</p>
+<h1 id="Definitions"><a href="#Definitions" class="headerlink" title="Definitions"></a>Definitions</h1><p>Visual studio online puts it best in their <a href="https://www.visualstudio.com/en-us/docs/tfvc/comparison-git-tfvc" target="_blank" rel="external">introduction</a>:</p>
+<blockquote><p>Git is a distributed version control system. Each developer has a copy of the source repository on their dev machine. Developers can commit each set of changes on their dev machine and perform version control operations such as history and compare without a network connection. Branches are lightweight. When you need to switch contexts, you can create a private local branch. You can quickly switch from one branch to another to pivot among different variations of your codebase. Later, you can merge, publish, or dispose of the branch.</p>
+<p>   //…</p>
+<p>Team Foundation Version Control (TFVC) is a centralized version control system. Typically, team members have only one version of each file on their dev machines. Historical data is maintained only on the server. Branches are path-based and created on the server.</p>
+</blockquote>
+<p>Interesting note, MS rebranded TFS to TFVC, as Team Foundation contains a superset of functionalities. In this post I hope I will be excused to keep using the old slag and refer to the version control as TFS.</p>
+<h1 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h1><p>The key advantages in using git to me are:</p>
+<ul>
+<li><p>Git keeps the project footprint much smaller, as for TFVC each branch is an entire new copy of the full repo on your machine.</p>
+</li>
+<li><p>Following the previous point, git is much faster. It does not take minutes to create or download a branch, it usually takes seconds.</p>
+</li>
+<li><p>Pull request with code review (or at least on line code commenting) is the best way to work Agile. Each user story has its branch, and gets merged when it gets to the end of the swim lanes. Devs can work easily on multiple User Stories if they get blocked, and it is easier to keep code separated before it reaches production. PRs are also a great way to level the field among the development team, disseminate knowledge, ensure better quality (short of full pair programming, which doubles the development cost). Tfs does not support pull request natively.</p>
+</li>
+<li><p>For some reason the perception from the outside is that <code>git == GitHub</code>, and therefore <code>all your code ends up being public</code>. There are multiple ways to keep your code secure and private, from GitHub itself to MS Visual Studio Online <a href="https://www.visualstudio.com/en-us/docs/git/share-your-code-in-git-vs" target="_blank" rel="external">which supports git</a>.</p>
+</li>
+<li><p>Git from command line is great, but Win users don’t have bash unless they are on Anniversary Win 10. Nonetheless, <a href="https://www.sourcetreeapp.com/" target="_blank" rel="external">Source Tree</a> is a great free (!) tool that gives a visual representation of the status of the branches, both local and on remotes. Plus it supports the tried and tested <a href="http://nvie.com/posts/a-successful-git-branching-model/" target="_blank" rel="external">git flow</a> working method.</p>
+</li>
+<li><p>With Git you get less merge conflicts as it does three way merging out of the box (meaning, it takes into consideration the original version of the file as well, on top of the two points of merging). TFS version control normally runs on two way merging (<a href="http://www.continuousimprover.com/2015/06/why-you-should-abandon-tfs-source.html" target="_blank" rel="external">from this source</a>).</p>
+</li>
+<li><p>Microsoft itself is telling us, in so many words, to use Git. </p>
+<ul>
+<li><p>‘Git is the default version control provider for new projects. You should use Git for version control in your projects unless you have a specific need for centralized version control features in TFVC.’ <a href="https://www.visualstudio.com/en-us/docs/tfvc/comparison-git-tfvc" target="_blank" rel="external">MS - Choosing the right version control for your project, Visual Studio August 2016</a>.</p>
+</li>
+<li><p>Micrososft even gives the tutorial on how to novate from TFS to Git <a href="https://www.visualstudio.com/en-us/articles/mapping-my-tfvc-actions-to-git" target="_blank" rel="external">Visual Studio, May 2016</a>.</p>
+</li>
+<li><p>The TFS team has been focused on git support: <code>Lately, all our new development work has been in Git features.</code> - <a href="https://blogs.msdn.microsoft.com/bharry/2014/04/14/is-microsoft-abandoning-tfvc-in-favor-of-git/" target="_blank" rel="external">Brian Harry, PM at MS TFS, on his blog in April 2014</a>.</p>
+</li>
+</ul>
+</li>
+<li><p>Other big players like <strong>Perforce</strong>, the standard for version control in game developing, are integrating git (via <a href="https://www.perforce.com/support/tutorial-video-library/video/git-fusion-overview" target="_blank" rel="external">git fusion</a> for example).</p>
+</li>
+</ul>
+<h1 id="TFS-aka-TFVC"><a href="#TFS-aka-TFVC" class="headerlink" title="TFS (aka TFVC)"></a>TFS (aka TFVC)</h1><p>The key advantages of using TFS to me are:</p>
+<ul>
+<li><p>Lower friction with teams that are trained and used to TFS. Retooling the team for git is a cost.</p>
+</li>
+<li><p>Can address almost every need that Git addresses, just takes longer / it is more painful. </p>
+</li>
+</ul>
+<p><br></p>
+<p>I am aware that git provides additional advantages to those outlined above, but I wanted to keep this post short and to the point. Also, I wrote this in the time I had to wait for TFS to re-download 4 GB worth of repository from scratch, due to some corrupt .cs files.</p>
+<p>Agree? Disagree? Please comment below!</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;There is a large amount of blog posts on the subject &lt;code&gt;TFS vs GIT&lt;/code&gt;. I have experience using both, the former usually crops up w
+    
+    </summary>
+    
+    
+      <category term="Best Practices" scheme="http://andreacremese.github.io/tags/Best-Practices/"/>
+    
+      <category term="Source Control" scheme="http://andreacremese.github.io/tags/Source-Control/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Arrow functions (and this)</title>
+    <link href="http://andreacremese.github.io/2016/08/02/Arrow-functions-and-this/"/>
+    <id>http://andreacremese.github.io/2016/08/02/Arrow-functions-and-this/</id>
+    <published>2016-08-03T01:27:10.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>In the past month or so I found myself discussing the ES6 Arrow function syntax in a few occasions. In some cases I realized that the general understanding was <strong>“arrow functions are just a different, more concise way of writing anonymous functions in JS”</strong>. I have to confess that at the beginning that was as well my impression. Watching <a href="https://www.pluralsight.com/courses/rapid-es6-training" target="_blank" rel="external">Mark Zamoyta’s ES6 training on Pluralsight</a> gave a great impetous in order to dissect the nuances of arrow functions.</p>
+<p>The specs seem to suggest that a shorter syntax is part of the reason why arrow functions were introduced, but they are not a like-for-like substitution for anonymous functions. There are other differences that need to be taken into consideration and, to my mind, the main difference is that <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions" target="_blank" rel="external"><strong>an arrow functions […] does not bind its own “this”</strong></a> (from the Mozilla docs).</p>
+<h3 id="Introduction-Lexical-scope-Dynamic-scope-and-this"><a href="#Introduction-Lexical-scope-Dynamic-scope-and-this" class="headerlink" title="Introduction: Lexical scope, Dynamic scope and this"></a>Introduction: Lexical scope, Dynamic scope and <code>this</code></h3><p>As a reminder, <strong>lexical scope</strong> (aka static scope) means that each function has access to its own scope and to the scopes of the calling functions as they are declared. In case the variable / function requested is not present in the current scope, the higher level scope is searched.</p>
+<pre><code class="javascript">function doSomething() {
+    var a = &quot;Andrea&quot;;
+    function printIt() {
+        console.log(`The name is ${a}`);
+        // The lexical (static) scope contains a at the level &#39;above&#39;. 
+    }
+    printIt();
+}
+
+doSomething(); // Prints The name is Andrea;
+</code></pre>
+<p>This is in contrast with <strong>dynamic scope</strong>, where the variable depends on the program state at execution time.</p>
+<pre><code>function doSomething() {
+	var a = &quot;Andrea&quot;;
+	printIt();
+}
+
+function printIt() {
+	console.log(`The name is ${a}`);
+}
+
+doSomething(); &#x2F;&#x2F; Gives a &#39;Reference error&#39; as &#39;a&#39; is not in scope. A language like LISP with dynamic scope would be able to access &#39;a&#39;.;</code></pre>
+<p>In other words, dynamic scoping would assign variables not according to where functions are written, but rather looking at the call stack. In this case the decision of what the scope containts is a runtime decision, while the lexical scoping decision is a parse time one.</p>
+<p>Javascript has lexical scope, functions have their own scope when they run (Note: if functions are new’ed they return that scope automatically). But Javascript provides us well with the <code>this</code> mechanism, which instead of doing scope lookups traverses the delegation chain, in a mechanism that is similar to dynamic scope.</p>
+<h3 id="Arrow-functions-and-lexical-scope"><a href="#Arrow-functions-and-lexical-scope" class="headerlink" title="Arrow functions and lexical scope"></a>Arrow functions and lexical scope</h3><p>Arrow functions do not bind to their own lexical scope, but rather they bind to the lexical scope of the function they are invoked into. In other words, they don’t create a new scope but rather bind automatically to the scope they are invoked in. This makes them very useful as they don’t create a new ‘this’ in the scope and bind to that the way a <code>function</code> expression does. Also, if<code>this</code> is called inside an arrow function, the “higher level’s” <code>this</code> is actually accessed. </p>
+<p>A good example of this behavior is in callbacks, handlers and any situation in which an anonymous function expression is nested within a function with a scope. With an arrow function there is no need anymore to do the old fashion “save the reference to <code>this</code> into a variable to be able to access it from the callback”. </p>
+<p>Meaning:</p>
+<pre><code>function someClass() {
+	this.name = &quot;Andrea&quot;;
+	setTimeout(function () {
+		console.log(`Hello ${this.name}`);
+	},1000)
+}
+
+var p = new someClass(); &#x2F;&#x2F; will output only &#39;Hello&#39;</code></pre> 
+<p>In order to make the code above work we’d need to get the reference to the scope into a variable, usually <code>self</code> (or <code>vm</code> in John Papa’s angular style guide - <a href="https://johnpapa.net/angularjss-controller-as-and-the-vm-variable/" target="_blank" rel="external">Controller-As pattern</a>):</p>
+<pre><code>function someClass() {
+	var self = this;
+	self.name = &quot;Andrea&quot;;
+	setTimeout(function () {
+		console.log(`Hello ${self.name}`);
+	},1000)
+}
+var p = new someClass(); &#x2F;&#x2F; will output &#39;Hello Andrea&#39;</code></pre>
+<p>This is not needed with arrow functions.</p>
+<pre><code>function someClass() {
+	this.name = &quot;Andrea&quot;;
+	setTimeout(() =&gt; {
+		console.log(`Hello ${this.name}`);
+	},1000)
+}
+var p = new someClass(); &#x2F;&#x2F; will output &#39;Hello Andrea&#39;</code></pre>
+<p>As a closing thought, because they dont create their own scope, arrow functions canot be <strong>newd</strong> the same way expression functions can.</p>
+<h4 id="A-real-life-example-from-this-morning’s-code-review"><a href="#A-real-life-example-from-this-morning’s-code-review" class="headerlink" title="A real life example (from this morning’s code review)"></a>A real life example (from this morning’s code review)</h4><p>While these examples seem academic (in fact they are very similar to Mozilla Doc’s examples), below is an example from real life. </p>
+<p>This is an extract from an event handler in a meteor template. The idea is to show a <a href="http://semantic-ui.com/modules/modal.html#/usage" target="_blank" rel="external">Semantic UI modal</a> and if the modal is confirmed, delete a certain object in a collection.</p>
+<pre><code>Template.sampleTemplate.events({
+   	&quot;click #delete-trip&quot; : function () {
+        var _id = this._id;
+        $(&#39;.delete-modal&#39;).modal({
+        	&#x2F;&#x2F; this is the handler for approval on the modal
+                onApprove : function () {
+                	&#x2F;&#x2F; this is the action on the collection.
+                	&#x2F;&#x2F; note that the code needs to place the this._id in 
+                	&#x2F;&#x2F; an _id variable, as the handler creates its own lexical scope, 
+                	&#x2F;&#x2F; where this._id is not present. 
+                    reports.update({_id : _id}, {$set : {isDeleted : true}});
+                    sAlert.info(&quot;Report Deleted&quot;);
+                    return true;
+                },
+                onHidden : function () {
+                    $(&quot;.modal&quot;).remove();
+                    Router.go(&#39;reportsDash&#39;);
+                }
+            })
+            .modal(&#39;show&#39;);
+	}
+	[...]
+})</code></pre>
+<p>In order to run correctly and avoid an <code>undefined property _id</code> error, the event handler needs to store the scope (or the part of the scope that will be used later) in a variable in the lexical scope. That is the function of the line <code>var _id = this._id</code>. As Arrow functions don’t create a lexical scope, this line is not needed if you are using an arrow function.</p>
+<p>This seems like a nuance, but having access to the <code>this</code> scope from the handler allows to basically forget about storing the _id in a variable and instead write the following:</p>
+<pre><code>Template.sampleTemplate.events({
+   	&quot;click #delete-trip&quot; : function () {
+        &#x2F;&#x2F; var _id = this._id; &#x2F;&#x2F; this is not needed anymore
+        $(&#39;.delete-modal&#39;).modal({
+                onApprove : () =&gt; {
+                    &#x2F;&#x2F; this._id is now in the handler&#39;s scope 
+                    reports.update({_id : this._id}, {$set : {isDeleted : true}});
+                    sAlert.info(&quot;Report Deleted&quot;);
+                    return true;
+                },
+                onHidden : function () {
+                    $(&quot;.modal&quot;).remove();
+                    Router.go(&#39;reportsDash&#39;);
+                }
+            })
+            .modal(&#39;show&#39;);
+	}
+	[...]
+})</code></pre>
+<p>For the meteor aficionados, the event handler above requires setting up the <code>allow</code> on the back end. Meteor methods are a much better pattern, and it is the next refactoring. Have a look at this <a href="https://github.com/andreacremese/calendarapp/blob/develop/lib/methods/atgEventsMethods.js" target="_blank" rel="external">Meteor method example</a>.   </p>
+<h3 id="Arrow-functions-and-object-methods-an-important-watch-it"><a href="#Arrow-functions-and-object-methods-an-important-watch-it" class="headerlink" title="Arrow functions and object methods, an important watch-it!"></a>Arrow functions and object methods, an important watch-it!</h3><p>More on the distinction between arrow functions and function expressions, using an arrow function to define an object on a method can cause some unpredictable (bad) results, as the property method cannot be bound to the object’s <code>this</code>, therefore preventing access to its other properties / methods.</p>
+<pre><code>var object = {
+	name : &quot;Enrico&quot;,
+	talkArrow : () =&gt;  { console.log(&quot;with the rocket as anonymous function this&#39; name is &quot; + this.name); },
+	talkFunction : function () { console.log(&quot;with the function expression this&#39; name is &quot; + this.name); },
+}
+
+object.talkArrow() &#x2F;&#x2F; will fail to access the name in the object&#39;s scope
+&#x2F;&#x2F; returns &#39;with the rocket as anonymous function this&#39; name is undefined&#39;
+object.talkFunction() &#x2F;&#x2F; correctly prints &#39;with the function expression this&#39; name is Enrico&#39;</code></pre>
+<p>The new shorthand syntax in order to achieve that with less keypresses is as follows (note, no arrow sign).</p>
+<pre><code>var object = {
+	name : &quot;Enrico&quot;,
+	talkNamedArrow() { console.log(&quot;with the named function shorthand this&#39; name is &quot; + this.name); }
+}
+
+object.talkNamedArrow() &#x2F;&#x2F; =&gt; prints &#39;with the function shorthand expression this&#39; name is Enrico&#39;</code></pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;In the past month or so I found myself discussing the ES6 Arrow function syntax in a few occasions. In some cases I realized that the gen
+    
+    </summary>
+    
+    
+      <category term="JS" scheme="http://andreacremese.github.io/tags/JS/"/>
+    
+      <category term="ES6" scheme="http://andreacremese.github.io/tags/ES6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Mocks with Node + Express</title>
+    <link href="http://andreacremese.github.io/2015/05/07/Mocks-with-node-plus-express/"/>
+    <id>http://andreacremese.github.io/2015/05/07/Mocks-with-node-plus-express/</id>
+    <published>2015-05-08T02:06:21.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>When developing apps with RESTful APIs interfaces there is often the need to setup a quick and temporary Mock site that would return some pre canned Json depending to a the request made.</p>
+<p>While there are many sites around that allow you to do exactly that (APIary is one that jumps to mind right now), in many cases these only allow a static one-to-one correlation between request and responses.  In other words, the behavior is usually: “when I send this reply with that”, so on and so forth. </p>
+<p>While this is great for documentations, in some (many) cases during development there is a need to <strong>return different responses to the same request</strong>. This may to test different business scenarios, simulating systems down, and so on and so forth.</p>
+<p>There are many way to achieve this, one that I personally like is to leverage Node + Express. Note that following server is fully functional but it is <strong>for demo only</strong>.</p>
+<pre><code>        var express = require(&#39;express&#39;);
+        var morgan = require(&#39;morgan&#39;);
+        var bodyParser = require(&#39;body-parser&#39;);
+        var cors = require(&#39;cors&#39;);
+        var fs = require(&#39;fs&#39;);            
+
+
+        var app = express();
+        var port = process.env.PORT || 3000;            
+
+        var jsonParser = bodyParser.json({ type: &#39;application/*+json&#39; });            
+
+        app
+            .use(cors())
+            .use(jsonParser)
+            .use(bodyParser.json())
+            .listen(port);                    
+
+        app.post(&#39;/api/mockedrequest&#39;, function (req, res) { handleRequest(req, res); });
+        app.post(&#39;/api/overrideResponse&#39;, function (req, res) { overrideResponse(req, res); });            
+
+
+
+        // Mappings requests =&gt; replies 
+        // Should go in a config module, really
+        var TestCasesMappings = {
+            &quot;Account1&quot;: { code : 200, responsefile : &quot;./TestData/TestCase1.Response.json&quot; },
+            &quot;Account2&quot;: { code : 200, responsefile : &quot;./TestData/TestCase2.Response.json&quot; }, 
+            &quot;Account3&quot;: { code : 200, responsefile : &quot;./TestData/TestCase3.Response.json&quot; },
+            &quot;Account4&quot;: { code : 400, responsefile : &quot;./TestData/BadRequest.Response.json&quot; },
+            &quot;Account5&quot;: { code : 503, responsefile : &quot;./TestData/Unavailable.Response.json&quot; },  
+            Default: { code : 200, responsefile : &quot;./TestData/TestCase1.Response.json&quot; }
+        };    
+
+
+        // API behavior
+        // Sould go in an API module, really
+        var ResponseOverriddenAccount;            
+
+        var handleRequest = function (req, res) {
+            if (ResponseOverriddenAccount != null){
+                var required_response = (ResponseOverriddenAccount in TestCasesMappingsMapping ) ? ResponseOverriddenAccount : &quot;Default&quot;; 
+            } else {
+                var required_response = (req.body.Account in TestCasesMappings ) ? req.body.Account : &quot;Default&quot;; 
+            }
+            var response_code =  (TestCasesMappings[required_response]).code;
+            var filepath = TestCasesMappings[required_response].responsefile;
+            var message = JSON.parse(fs.readFileSync( filepath , &#39;utf8&#39;));
+            res.send(response_code, message );
+        };            
+
+        var overrideResponse = function (req,res) {
+            if (&quot;Account&quot; in req.body){
+                ResponseOverriddenAccount = (req.body.Account in TestCasesMappings) ? req.body.Account : null;      
+            }
+            var msg = (ResponseOverriddenAccount == null) ? &quot;Default behavior re instated&quot; : &quot;Response now switched to  &quot; + ResponseOverriddenAccount + &quot; for all requests&quot;;
+            res.send(200, msg);
+        }      
+</code></pre><p>In the code sample there is one mapping literal that maps request to response with an Account key in the request (so far, easy). This means that a request to the <code>/api/mocked</code> end point with a payload “Account” : “Account1” will be responded with the json TestCase1, mapped as per the literal <strong>TestCasesMapping</strong>.</p>
+<p>So <code>curl -X POST -d  &#39;{&quot;Account&quot; : &quot;Account1&quot;}&#39; http://localhost:3000/api/mockedrequest --header &quot;content-type: application/json&quot;</code> will return a 200, with payload as in the relative file.</p>
+<p>Now, in order to be able to modify the behavior, another end point is provided at <code>/api/overrideResponse/</code>. This accepts the behavior (account) that should become the new default for all requests OR, as and option, a reset to the original mapping. </p>
+<p>So <code>curl -X POST -d  &#39;{&quot;Account&quot; : &quot;Account1&quot;}&#39; http://localhost:3000/api/overrideResponse --header &quot;content-type: application/json&quot;</code> will make the server respond to all requests with the TestCase1, so on and so forth. Sending <code>&#39;{&quot;Account&quot; : null }&#39;</code> null will reset the responses to the original default.</p>
+<p>No need to restart servers, swap files or anything similar.</p>
+<h3 id="One-word-of-caution"><a href="#One-word-of-caution" class="headerlink" title="One word of caution"></a>One word of caution</h3><p>The server above is a display example. In order to achieve this behavior on a larger scale it is better practice not to pollute the global scope, and instead:</p>
+<ul>
+<li>Have the mapping in a separate module (configs), and inject the literal with the mapping in the server (or better yet in the api module) as needed.</li>
+<li>Have the functions handler in a separate api module as well (together with the var holding the status of the override), so to inject them as needed.</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;When developing apps with RESTful APIs interfaces there is often the need to setup a quick and temporary Mock site that would return some
+    
+    </summary>
+    
+    
+      <category term="JS" scheme="http://andreacremese.github.io/tags/JS/"/>
+    
+      <category term="node" scheme="http://andreacremese.github.io/tags/node/"/>
+    
+      <category term="express" scheme="http://andreacremese.github.io/tags/express/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Connecting remotely to a Visual Studio solution running in a VM (say Parallels)</title>
+    <link href="http://andreacremese.github.io/2015/03/22/run-visual-studio-in-parallels/"/>
+    <id>http://andreacremese.github.io/2015/03/22/run-visual-studio-in-parallels/</id>
+    <published>2015-03-23T06:40:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><em>This article discusses my attempts (and eventual success) to connect remotely to a solution running in the Visual Studio Debugger in a Parallels VM.</em></p>
+<h5 id="Connecting-to-a-Visual-Studio-localhost"><a href="#Connecting-to-a-Visual-Studio-localhost" class="headerlink" title="Connecting to a Visual Studio localhost"></a>Connecting to a Visual Studio localhost</h5><p>To me, it is much nicer to develop an angular (or a node project in OSX or Linux). But if your backend project is in, say, .NET, it is a pain to debug in local. When working on extensive - mid-large scale projects - this is seldom the situation.</p>
+<h5 id="The-standard-solution-IIS"><a href="#The-standard-solution-IIS" class="headerlink" title="The standard solution: IIS"></a>The standard solution: IIS</h5><p>Yes, I know, you can run everything in Parallels (or have a win machine in the first place) and yes, of course, you can run the .NET solution in an IIS site and yes, by all means, you can add that site to your host files so you can connect to it from your OSX environment (say that you run Parallels or any other VM). </p>
+<p><strong>BUT</strong> all this adds another (unwanted) piece to the puzzle: IIS.</p>
+<p>Meaning that, if you want to debug your code in an end-to-end scenario, you have to attach your code (in VS) to the correspondent process running in IIS. Fun (not really).</p>
+<p>Also, after a bit of doing this, I realized some idiosyncrasies of IIS, especially in not picking up a change in the compiled DLLs and EXEs after a build. More Fun.</p>
+<p>This is all due to the fact that Visual Studio runs a solution in IIS Express, and it does not allow to connect to that solution remotely. I guess this is a security feature, but we are responsible people (aren’t we?!?!).</p>
+<h5 id="Doing-away-with-IIS"><a href="#Doing-away-with-IIS" class="headerlink" title="Doing away with IIS"></a>Doing away with IIS</h5><p>So I tried a few things to get around this. I even tried some port forwarding (yes I wanted this <em>that</em> badly). I finally set on a solution.</p>
+<p>Here’s the work around:</p>
+<ul>
+<li>In Win: open the firewalls (inbound and outbound) of the port you are connecting to.</li>
+<li><p>Give yourself permission to bound to network adaptors other than localhost. So in an elevated prompt you can run:</p>
+<pre><code>  netsh http add urlacl url=http://*:2067/ user=&quot;NT AUTHORITY\INTERACTIVE&quot;  
+</code></pre></li>
+<li><p>Change the binding for the site you are running in the applicationhost.config file (%USERPROFILE%\Documents\IISExpress\config\applicationhost.config):</p>
+<pre><code>  &lt;site name=&quot;...&quot; id=&quot;...&quot;&gt;
+  &lt;-- more setting shere --&gt;
+      &lt;binding protocol=&quot;http&quot; bindingInformation=&quot;*:2067:*&quot; /&gt;
+</code></pre></li>
+<li><p>In Mac, go to your hosts file in /private\etc, and add the VM’s ip address to the hosts (if not known, ipconfing in win will help):</p>
+<pre><code>  192.168.1.113   winhost
+</code></pre></li>
+</ul>
+<p>Et volia, in mac you shoudl not be able to navigate to <a href="http://winhost:2067" target="_blank" rel="external">http://winhost:2067</a>, running in VS on a virtual machine in Parallels.</p>
+<p>Here for some references: <a href="http://blogs.iis.net/vaidyg/archive/2010/07/29/serving-external-traffic-with-webmatrix-beta.aspx" target="_blank" rel="external">Serving external traffic with WebMatrix Beta</a>, <a href="http://fabriccontroller.net/blog/posts/remotely-accessing-the-windows-azure-compute-emulator/" target="_blank" rel="external">Remotely accessing the Windows Azure Compute Emulator</a>, <a href="http://stackoverflow.com/questions/6192726/android-emulator-loopback-to-iis-express-does-not-work-but-does-work-with-cassi/18958879#18958879" target="_blank" rel="external">Stack Overflow : Android Emulator loopback to IIS Express does not work, but does work with Cassini</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;em&gt;This article discusses my attempts (and eventual success) to connect remotely to a solution running in the Visual Studio Debugger in 
+    
+    </summary>
+    
+    
+      <category term="Visual Studio" scheme="http://andreacremese.github.io/tags/Visual-Studio/"/>
+    
+      <category term="Win10" scheme="http://andreacremese.github.io/tags/Win10/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>RabbitMQ basics</title>
+    <link href="http://andreacremese.github.io/2015/02/09/rabbitmq-basics/"/>
+    <id>http://andreacremese.github.io/2015/02/09/rabbitmq-basics/</id>
+    <published>2015-02-09T23:31:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>The path for all the knowledge and wisdom in the universe is a very windy way, and it is letting me pass through Service Oriented Architecture. I am actualy quite glad of that =).</p>
+<p>Among the various services, platforms and tools I have studied in order to implement SOA for one of our clients there is RabbitMQ, the implementation of a memory queue by Pivotal Lab. Immagine and angry version of MSMQ, on steroids.</p>
+<p>I approached RabbitMQ right after having tried Azure service Bus Queues, which provide a lot of behavior as a service. RabbitMQ requires a bit more coding but its implementation is pretty cool, plus exposes the rabbitMQ server - which allows to drill into the nitty gritty of the host in a browser.</p>
+<h2 id="RabbitMQ-site-tutorials"><a href="#RabbitMQ-site-tutorials" class="headerlink" title="RabbitMQ (site) tutorials"></a>RabbitMQ (site) tutorials</h2><p>These <a href="https://github.com/AndreaHK5/RabbitMqTutorials" target="_blank" rel="external">folders on github</a> contain the examples / tutorials for Rabbit MQ (refer to <a href="http://www.rabbitmq.com/tutorials/tutorial-one-dotnet.html" target="_blank" rel="external">their site</a> for architecture and more documentation). Some comments are added - mainly for my personal benefit and future reference. All solutions run locally and in some cases the behavior might have been slightly modified from the one proposed in the Pivotal examples.</p>
+<p>I also added an extra folder with an exercise that mixes many aspects of SOA in RabbitMQ:</p>
+<ul>
+<li>Topics (implemented as exchanges in the RabbitMQ world).</li>
+<li>Binding the routing keys (note that Binding for RabbitMQ means something completely different than in the MS - WCF world).</li>
+<li>Use of “acknowledgments” receipts for “at-most-once” messaging.</li>
+<li>Durable queues (locally, but still resilient to shut down of the consumer).</li>
+<li>Name queues in lieu of self naming queues (used in the exchange samples). These allow the queue to be durable in case of crash for the subscriber.</li>
+<li>Pub/subs.</li>
+<li>Enforced round robin depending on the dimension of the messages rather than just on the order of arrival (which is the standard).</li>
+</ul>
+<h2 id="On-routing-keys"><a href="#On-routing-keys" class="headerlink" title="On routing keys"></a>On routing keys</h2><p>Refer to RabbitMQ’s site section at this <a href="https://www.rabbitmq.com/tutorials/tutorial-five-dotnet.html" target="_blank" rel="external">link</a>.</p>
+<h2 id="How-to-run-the-exercise"><a href="#How-to-run-the-exercise" class="headerlink" title="How to run the exercise"></a>How to run the exercise</h2><p>Compile the solution in the binaries.</p>
+<p>Make sure you have Erlang and RabbitMQ installed up and running - check <a href="localhost:15672" target="_blank" rel="external">localhost:15672</a> if in doubt).</p>
+<p>All commands are run via powershell / prompt (as in the examples in the Rabbit MQ site).</p>
+<h3 id="Register-the-consumers"><a href="#Register-the-consumers" class="headerlink" title="Register the consumers"></a>Register the consumers</h3><p>Register the listeners to create and bind the queues. Note that this implementation includes Feeds, but not Seed yet (old messages)</p>
+<pre><code>\Rabbit.Receiver\bin\Debug&gt; Rabbit.Receiver.exe alert.high alert.mid
+</code></pre><p>And state the name of the queue for this listener (this is in case the listener crashes and you want to pick it up later).</p>
+<pre><code>Enter queue name (RabbitMQ will create if does not exist)
+Alert1
+</code></pre><p>The queue Alert1 will be bound to the routing keys</p>
+<pre><code>subscribed to queue Alert1
+Alert1 now bound to alert.high
+Alert1 now bound to alert.mid
+consumer up and running, waiting for messages
+</code></pre><p>Now the queue Alert2 will subscribe to all alerts (in another shell):</p>
+<pre><code>\Rabbit.Receiver\bin\Debug&gt;Rabbit.Receiver.exe alert.*
+Enter queue name (RabbitMQ will create if does not exist)
+Alert2
+subscribed to queue Alert2
+Alert2 now bound to alert.*
+consumer up and running, waiting for messages
+</code></pre><h3 id="Send-messages"><a href="#Send-messages" class="headerlink" title="Send messages"></a>Send messages</h3><p>So now we send some messages to have a look. At first a specific message:</p>
+<pre><code>\Rabbit.Sender\bin\Debug&gt;Rabbit.Sender.exe alert.mid
+sent message Message : alert.mid
+</code></pre><p>Listener Alert1 will receive:</p>
+<pre><code>//Alert1
+consumer up and running, waiting for messages
+Received message Message : alert.mid
+</code></pre><p>And so will Alert2:</p>
+<pre><code>//Alert2
+consumer up and running, waiting for messages
+Received message Message : alert.mid
+</code></pre><p>We will now send a low alert. If everything is as it should be, Alert1 will not see it at all, but Alert 2 will.</p>
+<h3 id="Persistance"><a href="#Persistance" class="headerlink" title="Persistance"></a>Persistance</h3><p>Try to kill one of the consumers, send a few messages and then restart the listeners. =)</p>
+<h3 id="Contrast-with-Azure-Service-Bus-Queues-and-other-thoughts"><a href="#Contrast-with-Azure-Service-Bus-Queues-and-other-thoughts" class="headerlink" title="Contrast with Azure Service Bus Queues and other thoughts"></a>Contrast with Azure Service Bus Queues and other thoughts</h3><p>These basic examples for RabbitMQ implement two main roles: <strong>sender</strong> and <strong>receiver</strong>. As a result, there is a tighter than necessary dependence between the two. For example, the listeners (and their bindings) need to be instantiated before the sender.</p>
+<p>Future iteration will remove this constraint. Interesting to note that, out of the box, a competing service like Azure Service Bus Queues (AZSBQ) proposes a third role, directly embedded in the API, that of the <strong>manager</strong>. AZSBQ sender and receiver roles are typically not granted permission to instantiate queues, and manager is a separate app all together. </p>
+<p>Instead NServiceBus (at least in the first tutorials) delegates the instantiation of the queue to the consumer too.     </p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;The path for all the knowledge and wisdom in the universe is a very windy way, and it is letting me pass through Service Oriented Archite
+    
+    </summary>
+    
+    
+      <category term="SOA" scheme="http://andreacremese.github.io/tags/SOA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>WCF services - some take aways</title>
+    <link href="http://andreacremese.github.io/2014/12/08/WCFservices/"/>
+    <id>http://andreacremese.github.io/2014/12/08/WCFservices/</id>
+    <published>2014-12-09T04:01:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Why writing an entry on Microsoft WCF services I have been asked?!?</p>
+<p>Well, in the absence of a copy of the Hitchhikers guide to the galaxy readily available, the path for al the knowledge and wisdom in the universe seems to pass through the MS exam 487 - Windows Azure.</p>
+<p>The folks at Microsoft decided it to be fun for include WCF in the syllabus. So here are some notes and take aways from a couple of very interesting zerto-to-hero Pluralsight courses, from which most of this material is taken.</p>
+<ul>
+<li><a href="http://www.pluralsight.com/courses/wcf-jumpstart" target="_blank" rel="external">WCF Jumpstart</a>.</li>
+<li><a href="http://www.pluralsight.com/courses/building-dotnet-web-services-10ways" target="_blank" rel="external">10 Ways to Build Web Services in .NET</a>.</li>
+</ul>
+<h2 id="Why-should-I-use-WCF"><a href="#Why-should-I-use-WCF" class="headerlink" title="Why should I use WCF?"></a>Why should I use WCF?</h2><h5 id="1-Don’t-worry-about-the-plumbing"><a href="#1-Don’t-worry-about-the-plumbing" class="headerlink" title="#1 Don’t worry about the plumbing"></a>#1 Don’t worry about the plumbing</h5><p>Windows Communication Foundation is an framework intended to minimize the effort in setting up communication between client and server side. It is a bit like a code first for Entity Framework, but instead of settign up a database with it, the code will then set up the API call and end points. Metaprogramming - code that writes code.<br>The basic idea is to address the issue of conventional RESTful APIs: the client side needs to have access to the access points and data structure required / returned in order to operate properly. This might be cumbersome during development. Enters WSDL (wiz-del).<br>Web Service Description Language AKA “(WSDL pronounced “wiz’-dul”) is an XML-based interface definition language that is used for describing the functionality offered by a web service.” from <a href="en.wikipedia.org/wiki/Web_Services_Description_Language">Wikipedia</a>.<br>The server side of a WCF service can outputs an XML file with the “documentation” for the access points + data expected and supplied, in WSDL format. The client side can read this and generate the calls to the access points automatically.<br>The idea is that, once the server side is set up, the client side can have a <strong>code generated proxy</strong>. The proxy is an object which will have the API calls as methods, and will provide access to the data types provided/required. Furthermore, the proxy can be updated later on in case the WCF service changes.<br>So neither the client nor the server side have to worry about the plumbing - as all is code generated. That is the idea.</p>
+<h5 id="2-Ease-to-add-access-points"><a href="#2-Ease-to-add-access-points" class="headerlink" title="#2 Ease to add access points"></a>#2 Ease to add access points</h5><p>An additional advantace for WCF is the ease of adding access points.</p>
+<p>WCF is purposefully configuration-heavy. It comes with App.config (if standalone) and/or Web.config (if hosted in ASP.NET) files, in which the endpoint are stated and specified.</p>
+<p>This means that to add an extra end point to a method that I have available, say with a different binding, I don’t need to touch the code but rather the configuration.</p>
+<p>The interesting feature is that end points and business logic are separated. So it is very easy to add multiple end point (hopefully with different standards and bindings) for the same behavior.</p>
+<h5 id="3-Share-the-models"><a href="#3-Share-the-models" class="headerlink" title="#3 Share the models"></a>#3 Share the models</h5><p>Related to the points above, the client side does not need to have extra view model hard coded in, it can leverage to the data types that are coming through the wire automatically.</p>
+<h2 id="what-goes-in-the-WDSL-specification-and-therefore-in-the-WCF"><a href="#what-goes-in-the-WDSL-specification-and-therefore-in-the-WCF" class="headerlink" title="what goes in the WDSL specification (and therefore in the WCF)"></a>what goes in the WDSL specification (and therefore in the WCF)</h2><p>At the end of the day, the API will need the end points, the data and the methods. Let’s define them.</p>
+<h5 id="Data-entities"><a href="#Data-entities" class="headerlink" title="Data entities"></a>Data entities</h5><p>The WCF service needs to have reference to two packages for the serialization” <strong>System.Runtime.Serialization</strong> and <strong>System.ServiceModel</strong>.</p>
+<p>This allows you to decorate the classes with the DataContract and DataMember attributes. In other words, you can specify what get serialized and send through the wire.</p>
+<pre><code>namespace YourService.Entities
+{
+        [DataContract]
+        public class Customer
+       {
+          [DataMember]
+        public Guid Id { get; set; }
+        [DataMember]
+        public string FirstName { get; set; }
+        [DataMember]
+        public string LastName { get; set; }
+        [DataMember]
+        public string Phone { get; set; }
+        [DataMember]
+        public string Email { get; set; }
+        [DataMember]
+        public string FullName { get { return string.Format(&quot;{0} {1}&quot;, FirstName, LastName); } set { } }
+    }
+} 
+</code></pre><h5 id="Operations-available"><a href="#Operations-available" class="headerlink" title="Operations available"></a>Operations available</h5><p>Similar to above, the Service and Operations contracts are defined in the code. Note the reference to the entities.</p>
+<pre><code>using YourService.Entities;
+
+namespace YourService.services
+{
+    [ServiceContract]
+    public interface IYourService
+    {
+        [OperationContract]
+        List&lt;Product&gt; GetStuff1();
+        [OperationContract]
+        void SubmitStuff(Customer customer);
+
+    }
+}
+</code></pre><h5 id="ABC-of-end-points-configuration"><a href="#ABC-of-end-points-configuration" class="headerlink" title="ABC of end points (configuration)"></a>ABC of end points (configuration)</h5><p>Each access point is defined by its ABC: </p>
+<ul>
+<li>Address - usually protocol + servier + resource Uri (<a href="http://localhost2112/GetMePizza" target="_blank" rel="external">http://localhost2112/GetMePizza</a>)</li>
+<li>Bindings - SOAP or JSON? (http, tcp, see <a href="https://social.msdn.microsoft.com/forums/vstudio/en-US/c556519f-cdc3-4522-a41c-a2f402bc6275/types-of-binding-in-wcf" target="_blank" rel="external">this fourm response</a> for the full rundown).</li>
+<li>Contracts - strcture of the data that is sent.</li>
+</ul>
+<p>For example, in App.config OR Web.config an endpoint would look like this:</p>
+<pre><code> &lt;services&gt;
+   &lt;services&gt;        
+    &lt;endpoint address=&quot;net.tcp://localhost:2113/GetMePizza&quot;
+              binding=&quot;netTcpBinding&quot;
+              contract=&quot;Pizza.services.IPizzaService&quot;&gt;
+    &lt;/endpoint&gt;
+ &lt;/service&gt;
+&lt;/services&gt;
+</code></pre><p>Now, adding another end point is a jiffy as well, no extra code but just add:</p>
+<pre><code>    &lt;endpoint address=&quot;http://localhost:2113/Zza&quot;
+              binding=&quot;basicHttpBinding&quot;
+              contract=&quot; Pizza.services.IPizzaService &quot;&gt;
+    &lt;/endpoint&gt;
+</code></pre><p>And the end point <strong>behavior</strong> can be amended as well -  say to send the exceptions to the client side during development.</p>
+<pre><code>&lt;behaviors&gt;
+  &lt;serviceBehaviors&gt;
+    &lt;behavior&gt;
+      &lt;serviceDebug includeExceptionDetailInFaults=&quot;true&quot; /&gt;
+    &lt;/behavior&gt;
+  &lt;/serviceBehaviors&gt;
+&lt;/behaviors&gt;
+</code></pre><h5 id="What-is-there-in-a-WCF-service-as-a-project"><a href="#What-is-there-in-a-WCF-service-as-a-project" class="headerlink" title="What is there in a WCF service (as a project)"></a>What is there in a WCF service (as a project)</h5><p>A WCF project is basically a C# class which includes:</p>
+<ul>
+<li>App.config (endpoints).</li>
+<li>Service (Business Logic).</li>
+<li>Interface (ServiceContracts).</li>
+<li>Properties presets to run the debugging of the WCF service - smoke test.</li>
+<li>References to the Entities (DataContracts).</li>
+</ul>
+<p>An alternative approach is rather to add the WCF as an item to an ASP.NET project. In this case, if you want to run debug on the WCF alone, you’d need to set the preferences manually (Debug -&gt; Start External Project -&gt; select the WCF test client .exe file in the .NET local folder)</p>
+<h2 id="How-to-host-the-service-during-Development"><a href="#How-to-host-the-service-during-Development" class="headerlink" title="How to host the service during Development"></a>How to host the service during Development</h2><p>There are three main ways to host a service:</p>
+<ul>
+<li>Debug in VS - smoke test.</li>
+<li>Console app (as an instance of ServiceHost).</li>
+<li>In an ASP.NET environment (remember that, if you host this in IIS it will work only with HTTP binding as a standard).</li>
+</ul>
+<h5 id="Console-hosting"><a href="#Console-hosting" class="headerlink" title="Console hosting"></a>Console hosting</h5><p>Out of the three I find the console hosting the most interesting, maybe as it is the most barebones. It is basically instantiate a ServiceHost and keeping it “alive”.</p>
+<pre><code>    namespace ConsoleHosting
+    {
+           class Program
+        {
+            static void Main(string[] args)
+            {
+
+                //use a try - catch is a good practice while setting up a host.
+                try
+                {
+                    //instantiate the service
+                    ServiceHost host = new ServiceHost(typeof(YourWCFService));
+
+                    //start listening to incoming messages - as of the config it will be listening everywhere
+                        host.Open();
+
+                    // now we need to keep this up and running for as long as we need
+                    Console.WriteLine(&quot;Hit any key to close this....&quot;);
+                    Console.ReadKey();
+
+                    // then we want to close in a graceful way
+                    // this means that the calls that are in progress will be fulfilled, but no new requests.
+                    host.Close();
+
+                }
+                catch (Exception ex)
+                {
+
+                        Debug.WriteLine(ex.Message);
+                }
+        }
+    }
+}
+</code></pre><p>Note that the end points are required in the App.config <strong>of the console project</strong>, and those do not need necessarily to be the same as the ones in the app.config <strong>of the WCF service</strong>. The former will be up for the console hosting, while the latter will be available for the debug - smoke testing.</p>
+<p>Also note that, in order to run a WCF as a console app, you will need to turn off the “Start WCF service” in the Properties of the WCF service. This otherwise the service will start by itself as debug, and the console app will not get access to the end points.</p>
+<pre><code>&lt;system.serviceModel&gt;
+&lt;services&gt;
+  &lt;service name=&quot;YourWCFService&quot;&gt;
+    &lt;host&gt;
+      &lt;baseAddresses&gt;
+        &lt;add baseAddress=&quot;http://localhost:2112&quot;/&gt;
+      &lt;/baseAddresses&gt;
+    &lt;/host&gt;
+    &lt;endpoint address=&quot;EnfPoint&quot;
+              binding=&quot;basicHttpBinding&quot;
+              contract=&quot;IYourWCFService&quot;&gt;
+    &lt;/endpoint&gt;
+    &lt;endpoint address=&quot;net.tcp://localhost:2113/EndPoint&quot;
+              binding=&quot;netTcpBinding&quot;
+              contract=&quot;IYourWCFService&quot;&gt;
+    &lt;/endpoint&gt;
+  &lt;/service&gt;
+&lt;/services&gt;
+</code></pre><h2 id="Architecture-of-the-Solution"><a href="#Architecture-of-the-Solution" class="headerlink" title="Architecture of the Solution"></a>Architecture of the Solution</h2><p>Interestingly, but not surprisingly, the two courses I followed suggested two different architectures of the projects’ organization:</p>
+<ul>
+<li>One with 5 namespaces<ul>
+<li>A WCF Service (Service Contracts in the Interface, business logic).</li>
+<li>Entities (Data Contracts).</li>
+<li>Host.</li>
+<li>Data (Entity Framework).    </li>
+<li>Client.</li>
+</ul>
+</li>
+</ul>
+<p>OR otherwise</p>
+<ul>
+<li><p>3 Namespaces:</p>
+<ul>
+<li>ASP.NET application with a WCF item inside.</li>
+<li>Data element (with Data Contracts, business logic around the data contracts, Entity Framework DbContext logic).</li>
+<li>Client side.</li>
+</ul>
+</li>
+</ul>
+<p>The first implementation seems to me the more linear and easier to understand to me (especially for separation of concerns). In the second implementation I started to have issues with the implementation of the client side, due to clashing after having created the proxy (more on proxy later).</p>
+<h2 id="The-proxy-element-client-side"><a href="#The-proxy-element-client-side" class="headerlink" title="The proxy element / client side"></a>The proxy element / client side</h2><p>One of the biggest reasons to set up a WCF service is to leverage the Web Services Description Language.</p>
+<p>To review the main idea is that:</p>
+<ul>
+<li>You don’t have to worry about the plumbing as the client side can “learn” about it form the WSDL AND</li>
+<li>It is easier to update the endpoint, as the reference can be updated.</li>
+</ul>
+<p>Adding a service reference in the client project is very easy. Just Add -&gt; Service reference to the client project. The same provides a system to update the reference.</p>
+<p>Note that you can discover the service specification in a few ways. If the service is in the same solution and it is in an .svc file you have access to the code and there is no need to add anything else.</p>
+<p>If instead the service is hosted in a console app / IIS you are better off starting that solution Without Debugging (so you can access and modify the code). The Add Service menu can at this point discover the service that is up and running.</p>
+<p>Obviously, as the back end gets updated, the client side can be updated automatically too. That is a nice plus.</p>
+<h4 id="Once-you-get-the-proxy"><a href="#Once-you-get-the-proxy" class="headerlink" title="Once you get the proxy"></a>Once you get the proxy</h4><p>At this point the client side can instantiate a the proxy object, which has a method for each endpoint call made available by the server side (actually, it gives one method for the sync and one for the async). </p>
+<p>Also notable, on the client side you have access to the DataModels that are specified on the server side. This is even easier for the code if you add a reference for the client project to the project containing the Entities (another good reason to keep this separated).</p>
+<p>For example, in order to reach an end point in the client controller all you need to do is:</p>
+<pre><code>YourServiceClient proxy = new YourServiceClient(&quot;httpBasicBinding&quot;);
+// in case there are multiple bindings available you can pass the binding you want to the constructor
+
+ ObservableCollection&lt;Customers&gt; customers = proxy.GetCustomers();
+</code></pre><h4 id="Standaonle-client-side"><a href="#Standaonle-client-side" class="headerlink" title="Standaonle client side"></a>Standaonle client side</h4><p>Note that all this is possible also if the WCF service solution is hosted somewhere else (say in Azure) and you don’t have direct access to the it namespace. At the end all you need is access to the WSDL specification for the service in order to generate the proxy element. </p>
+<p>I have not tried the second scenario, but I believe it is likely that the Firewall will need to be opne + CORS needs to be enabled for the API to work correctly.</p>
+<p>An API call with two lines of code. Neat eh?</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Why writing an entry on Microsoft WCF services I have been asked?!?&lt;/p&gt;
+&lt;p&gt;Well, in the absence of a copy of the Hitchhikers guide to the
+    
+    </summary>
+    
+    
+      <category term="C#" scheme="http://andreacremese.github.io/tags/C/"/>
+    
+      <category term="WCF" scheme="http://andreacremese.github.io/tags/WCF/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Web Workers</title>
+    <link href="http://andreacremese.github.io/2014/09/04/web-workers/"/>
+    <id>http://andreacremese.github.io/2014/09/04/web-workers/</id>
+    <published>2014-09-04T18:33:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Some notes form a quick Pluralsight course by Craig Shoemaker about web workers.</p>
+<h4 id="Web-workers"><a href="#Web-workers" class="headerlink" title="Web workers"></a>Web workers</h4><p>They are targeted at AJAX work, for labour intensive processes that will take time to finish up and might significantly impair the UI of the page. Seconding the work to a web worker will not lock up the UI wile long threads are going on. It is, in a way, a manner to create multi thread programming.</p>
+<p>Some of the uses include: 3D rendering, API responses, encripting, statistical analysis, CFD, messaging in social network. They can be:</p>
+<ul>
+<li>dedicated (they are linked to the their creator).</li>
+<li>shared (they can be called by any number of scripts).</li>
+</ul>
+<p>Note that <strong>IE &lt; 10 does not support them</strong>.</p>
+<h4 id="Access-restrictions"><a href="#Access-restrictions" class="headerlink" title="Access restrictions"></a>Access restrictions</h4><p>There are some quite severe access restrictions for the web workers:</p>
+<ul>
+<li>No access to the DOM - the UI is kept completely separate.</li>
+<li>No access to the window object.</li>
+<li>No access to host page + libraries.</li>
+</ul>
+<p>In other words, fun encapsulation. There si access to:</p>
+<ul>
+<li>appName</li>
+<li>appVersion</li>
+<li>platform</li>
+<li>userAgent</li>
+<li>Timers</li>
+<li>HttpRequests</li>
+</ul>
+<h4 id="How-to-set-up"><a href="#How-to-set-up" class="headerlink" title="How to set up"></a>How to set up</h4><h5 id="Instantiate-DOM"><a href="#Instantiate-DOM" class="headerlink" title="Instantiate (DOM)"></a>Instantiate (DOM)</h5><p>Instantiate a Worker object in the DOM. Note that the worker logic sits in a separate file.</p>
+<pre><code>var worker = new Worker(&#39;name_File.js&#39;);
+</code></pre><h5 id="Register-the-events-handlers-DOM"><a href="#Register-the-events-handlers-DOM" class="headerlink" title="Register the events handlers (DOM)"></a>Register the events handlers (DOM)</h5><p>Register the handlers for the events that the worker might fire:</p>
+<pre><code>worker.onmessage = messageHandler;
+worker.onerror = errorHandler;
+worker.postMessage(argument);
+</code></pre><p>The worker gets information and arguments by receiving messages and sends back information by responding to those messages with other messages. </p>
+<h5 id="Defining-the-events-handlers-DOM"><a href="#Defining-the-events-handlers-DOM" class="headerlink" title="Defining the events handlers (DOM)"></a>Defining the events handlers (DOM)</h5><p>messageHandler method will be the way the DOM will respond to the success of the worker.</p>
+<pre><code>function messageHandler(e){
+    var results = e.data;
+    // chew the output of the worker
+
+};
+</code></pre><p>e will be the response that is spitted out by the web worker.<br>Of course it would be good practice to handle the error as well</p>
+<pre><code>function errorHandler(e) {
+    // do some sort of catching
+
+};
+</code></pre><h5 id="Setting-up-the-worker"><a href="#Setting-up-the-worker" class="headerlink" title="Setting up the worker"></a>Setting up the worker</h5><p>The web worker has mainly two parts inside: 1) the function and logic that is to be performed and 2) listener for incoming messages. Part 2 goes like this:</p>
+<pre><code>addEventListener(&quot;message&quot;, some_function, true); 
+</code></pre><p>When a message is passed (whatever message, note) the some_function handler method is called.</p>
+<p>An alternative to the addEventListener method is to define directly an “onmessage” function.</p>
+<pre><code>// this is equivalent to the addEventListener to the worker
+onmessage = function (e) {
+     //do the thing
+}
+</code></pre><p>The onmessage function can be assigned as well to the worker’s global scope. This means that the onmessage can be rewritten appending the function to the scope.</p>
+<pre><code>self.onmessage = function (e) {
+     //do the thing
+}    
+</code></pre><p>The way to comunicate back to the main thread is to post messages back.</p>
+<pre><code>postMessage(the_local_results). 
+</code></pre><p><strong>note</strong>: the method that is used to communicate back and forth between worker and main thread is the same: postMessage().</p>
+<h4 id="Use"><a href="#Use" class="headerlink" title="Use"></a>Use</h4><p>The DOM and the web worker communicate through the postMessage method. Let’s see how this can work.</p>
+<h5 id="Passing-arguments-around"><a href="#Passing-arguments-around" class="headerlink" title="Passing arguments around"></a>Passing arguments around</h5><p>It is good practice not to send and return simple strings or instances of atomic data types, but rather send objects.</p>
+<pre><code>//in the DOM:
+var args = {InputData: {}, OutputData: {} };
+//...
+worker.postMessage(args);
+
+
+// in the worker
+function messageHandler(e) {
+    var args = e.data;
+    // do the logig and modify the args
+
+    postMessage(args);
+
+}
+
+addEventListener(&quot;message&quot;, messageHandler), true);
+</code></pre><p>Note that args is passed by value, meaning that whatever change it is made to the args in the worker will not be reflected to the DOM unless you specifically pass the args over and they are considered and read.</p>
+<h5 id="With-AJAX"><a href="#With-AJAX" class="headerlink" title="With AJAX"></a>With AJAX</h5><p>The same basic architecture is used, but the postMessage in the web worker will be called when the http request has finished (meaning status 200 and ready state 4). Only at that point I will send the message back to the DOM.</p>
+<pre><code>if (xmlhttp.readySTate == 4 &amp;&amp; html.status == 200) {
+    postMessage(xmlhttp.responseText)
+} 
+</code></pre><h5 id="How-to-stop"><a href="#How-to-stop" class="headerlink" title="How to stop"></a>How to stop</h5><p>There is no way to pause a worker while it is doing what he does. The two options are to wither terminate or close. </p>
+<p>Terminate is an abrupt termiation of the code, from the DOM environment.</p>
+<pre><code>// kill the worker
+_worker.terminate();
+</code></pre><p>Closing instead leaves some time and cleans up the memory. This needs to be initiated with a postMessage from the DOM, with a message hidden in the args (OR in the method signature).</p>
+<p>The code inside the worker is to close().</p>
+<pre><code>// in the DOM
+_worker.postMessage({Command: &quot;close&quot;, value: &quot;some value&quot;, message: &quot;some message&quot;})
+
+
+// in the worker handler (messageHandler)
+
+if(e.args == &quot;close&quot;) {
+    this.close();
+    // prepare the args that are to be passed back
+    postMessage(args);
+}
+</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Some notes form a quick Pluralsight course by Craig Shoemaker about web workers.&lt;/p&gt;
+&lt;h4 id=&quot;Web-workers&quot;&gt;&lt;a href=&quot;#Web-workers&quot; class=&quot;h
+    
+    </summary>
+    
+    
+      <category term="JS" scheme="http://andreacremese.github.io/tags/JS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Delegates in C#</title>
+    <link href="http://andreacremese.github.io/2014/08/07/delegates-in-c-number-and-other-interesting-stuff/"/>
+    <id>http://andreacremese.github.io/2014/08/07/delegates-in-c-number-and-other-interesting-stuff/</id>
+    <published>2014-08-07T22:46:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>A few notes on delegates, from <a href="http://pluralsight.com/training/Player?author=scott-allen&amp;name=csharp-fundamentals-csharp5-m4&amp;clip=4&amp;course=csharp-fundamentals-csharp5" target="_blank" rel="external">this very interesting course</a> by Scott Allan on Pluralsight.</p>
+<h4 id="Fields-VS-properties"><a href="#Fields-VS-properties" class="headerlink" title="Fields VS properties"></a>Fields VS properties</h4><p><strong>Field</strong>: also called <strong>backing fields</strong>, are one of the information encapsulated in the instance of an object. Note that fields are supposed to be encapsulated in the object and not public (i.e. keep them private). The public interface of a field is a property (see below). The convention for fields is to be named with an underscore before their name.</p>
+<p><strong>Property</strong>: the public interface that exposes backing field(s). Referring back to POODR, it is part of the public “messaging” that the instances of classes send one another. Each property comes with a get and a set (remember attr_accessor in POODR? Same thing). The convention is to have the property name CamelCased.</p>
+<pre><code>//This is the field
+private string _name
+
+// This is the property        
+public string Name {
+    get {
+        return _name
+        }
+    set {
+        _name = value;
+        }
+}
+</code></pre><h4 id="Delegate-type"><a href="#Delegate-type" class="headerlink" title="Delegate type"></a>Delegate type</h4><p>It is a data type that references listener methods. Even though it is a data type, its definition looks like that of a method. As it encopasses behavior, this is not too surprising. </p>
+<pre><code>public delegate void Name_Of_Delegate(string some_string);
+</code></pre><p>At some point you will have a variable referencing the delegate data type (as you do in JS, for example):</p>
+<pre><code>var delegate = new Name_Of_Delegate(a_previously_defined_string); 
+</code></pre><p>In this case the delegate takes a string, more on this later.</p>
+<h4 id="Listening-to-property-change"><a href="#Listening-to-property-change" class="headerlink" title="Listening to property change"></a>Listening to property change</h4><p>Ok, now for the main dish. Say that I can change the name of a certain instance of an object (property Name, backing field= _name). Say that I want to “announce” that someone has changed the name to a listener. I’d do that with a delegate (see above) that will contain all the behavior to be activated at name change.</p>
+<p>First, in the property get/set:    </p>
+<ul>
+<li>Make sure it is indeed a new value.</li>
+<li>Make sure that someone is interested in the fact that the name has changed, otherwise I will get a RunTimeError.</li>
+<li><p>Make sure the delegate is an event (see its definition, more on this later).</p>
+<pre><code>  private string _name;
+  public event NamedChangedDelegate NameChanged;
+
+  public string Name
+  {
+      get
+      {
+          return _name;
+      }
+      set
+      {
+          if (_name != value)
+          {
+              var oldValue = _name;
+              _name = value;
+              if (NameChanged != null)
+              {
+                  NameChangedEventClass args = new NameChangedEventClass();
+                  args.OldValue = oldValue;
+                  args.NewValue = value;
+                  NameChanged(this, args);
+              }
+          }
+      }
+  }
+</code></pre></li>
+</ul>
+<h4 id="Delegate-and-Event"><a href="#Delegate-and-Event" class="headerlink" title="Delegate and Event"></a>Delegate and Event</h4><p>The NameChangedDelegate is the delegate that we were discussing before. The intersting part is that the instance of the class who’s name is changing has absolutely no idea about what methods are rolled in the NameChangedDelegate, s/he only knows that someone might be listening. This is a great <strong>decoupling</strong>!<br>    // the delegate - good practice to encapsulate in a different class file<br>    public delegate void NamedChangedDelegate(object sender, NameChangedEventClass args);</p>
+<p>Note that the delegate takes in two elements: the sender object and the arguments that he might be interested into. This is a convention in c#. The arguments that he might be interested into are ecapsulated in the instance of a class callsed NameChangedEvent - that we will have to create as well.</p>
+<pre><code>// The class to encapsulate of the values that delegate might be interested into. Good practice to encapsulate in a different class file        
+    public class NameChangedEventClass : EventArgs
+{
+    public String OldValue{ get; set; }
+    public String NewValue { get; set; }
+}        
+</code></pre><p>Note that the class inherits from the EventArgs class.</p>
+<h4 id="Registering-the-listeners"><a href="#Registering-the-listeners" class="headerlink" title="Registering the listeners"></a>Registering the listeners</h4><p>Now, wherever I want to listen to the name changing I’d need to register my event listener. The event listener will be a method that does, well, pretty much what I want it to do, when the name changes. Note that the fact that in this case it is a class (static) method is only pertinent to the example at hand.</p>
+<pre><code>//this is the registration of the method 
+my_sample_class.NameChanged +=     OnNameChanged;
+
+    //this is the method to be activated    
+    private static void OnNameChanged2(object sender, NameChangedEventClass args)
+    {
+        Console.WriteLine(&quot;Name changed from {0} to {1}&quot;, args.OldValue, args.NewValue);
+    }
+</code></pre><p>Note that += is required in order to avoid overwriting the existing listeners that might already be in existance. This is because the delegate is a <strong>multicast delegate</strong>, meaning it can have a list of elements inside (so you’d better add to the list, rather than risking re initializing the list). </p>
+<p>Events do not allow anyway to initialize, but only to add and delete (as the NameChanged is specified as a <em>public event …</em>).</p>
+<h4 id="Interesting-note"><a href="#Interesting-note" class="headerlink" title="Interesting note"></a>Interesting note</h4><p>The delegate takes in the full sender object. This is a standard pattern in C#. This reminded me of the pattern for modules (mixins of behavior) in Ruby as proposed by Sandy Metz in the POODR book, refer also to this <a href="http://andreahk5.github.io/blog/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/" target="_blank" rel="external">link</a>. </p>
+<p>As the C# delegate is basically behavior (what would be a module in Ruby), this pattern is similar, even though reversed in a way. It is the sender that passes itself to the module (event) - rather than the module (event) passing itself to the implementing class. Just some food for thought.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;A few notes on delegates, from &lt;a href=&quot;http://pluralsight.com/training/Player?author=scott-allen&amp;amp;name=csharp-fundamentals-csharp5-m4
+    
+    </summary>
+    
+    
+      <category term="c#" scheme="http://andreacremese.github.io/tags/c/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Association, Aggregation and Composition (and chapter 8 of the POODR)</title>
+    <link href="http://andreacremese.github.io/2014/05/17/association-aggregation-and-composition-and-chapter-8-of-the-poodr/"/>
+    <id>http://andreacremese.github.io/2014/05/17/association-aggregation-and-composition-and-chapter-8-of-the-poodr/</id>
+    <published>2014-05-17T17:34:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>While I await the publication of the standard repository of all the knowledge and wisdom in the universe, the “Hitchhikers guide to the Galaxy”, and its much awaited chapter on OOD, my quest for OOD knowledge continues.</p>
+<p>One concept that seemed worth expanding is Association, Aggregation and Composition. We touched upon this during <a href="http://andreahk5.github.io/blog/2014/05/04/chapter-8-composition/" target="_blank" rel="external">Chapter 8 of Poodr</a>, but it is time for a deeper charge at the matter.</p>
+<p>This is conceptually relevant for Ruby developers, but it becomes semantically relevant for other </p>
+<h3 id="Association"><a href="#Association" class="headerlink" title="Association"></a>Association</h3><p>A relationship between two classes is, generically, an <strong>association</strong>. Small interfaces and TDD public interfaces is the key to keep an OOD architecture scalable. Easy to say, hard to do but that’s where the fun is =).</p>
+<h3 id="Aggregation"><a href="#Aggregation" class="headerlink" title="Aggregation"></a>Aggregation</h3><p><strong>Aggregation</strong> is a relationship between two classes in which one of the classes has a class invariant that includes the existence and the relationship with a concrete instance of the other class.</p>
+<p>As a note, class invariant is one of the five assertions according to the <a href="http://w3.cs.jmu.edu/spragunr/CS240/ConciseNotes.pdf" target="_blank" rel="external">Concise Notes on Data Structures and Algorithms Ruby Edition, Christopher Fox, James Madison University, 2011</a>.</p>
+<p><em>A class invariant is an assertion that must be true of any class instance before and after calls of its exported operations.</em>)</p>
+<p>In a Book instance, Ink and Paper are in a relationship. Each instance of Ink has a class invariant that requires it to be related to an instance of Paper. Paper does not have such constraint, as it can live by itself.</p>
+<p>Actually, Paper is associated with Book, but I <em>could</em> rip it off and make it a standalone element. (Also note, I am very good with my inkwell - no ink anywhere else than on paper!)</p>
+<p>This is, obviously, a <strong>constraint</strong> for coding - it needs to be taken into consideration for scalability (refer again to POODR).</p>
+<h3 id="Composition"><a href="#Composition" class="headerlink" title="Composition"></a>Composition</h3><p><strong>Composition</strong> is a relationship between two classes in which both classes have a class invariant that includes the existence and the relationship with a concrete instance of the other class.</p>
+<p>In a House instance, a Door instance and a Handle instance require one another (we are considering only a finished house, no saloon or double swing doors). For the fans of Calculus I, this is an “if-and-only-if” condition.</p>
+<p>This is an even bigger <strong>constraint</strong> to keep small interface between classes instances.</p>
+<h3 id="A-closing-note"><a href="#A-closing-note" class="headerlink" title="A closing note"></a>A closing note</h3><p>Consider looking concepts like <a href="http://andreahk5.github.io/blog/2014/03/27/poodr-chapter-3/" target="_blank" rel="external">dependency injection</a>, <a href="http://andreahk5.github.io/blog/2014/04/07/poodr-chapter5-duck-typing/" target="_blank" rel="external">Duck Typing</a> and <a href="http://www.poodr.com/" target="_blank" rel="external">Poodr</a> in general to allow scalability and pleasure of development.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;While I await the publication of the standard repository of all the knowledge and wisdom in the universe, the “Hitchhikers guide to the G
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="Rails" scheme="http://andreacremese.github.io/tags/Rails/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>POODR - Notes from Chapter 9 - testing</title>
+    <link href="http://andreacremese.github.io/2014/05/08/chapter9-testing/"/>
+    <id>http://andreacremese.github.io/2014/05/08/chapter9-testing/</id>
+    <published>2014-05-09T03:04:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>The importance of testing cannot be underestimated. As a personal note, I can’t believe that during my time coding in Fortran we did not implement TDD but rather testing was done manually (well, we also had physical validation to ensure the data was correct).</p>
+<p><strong>Why testing?</strong></p>
+<ul>
+<li>Testing, if written first, is your specification. For someone like me coming form the construction industry, this is pretty cool.</li>
+<li>Find bugs and mishaps very early in the play, ideally before they can propagate.</li>
+<li>Gives documentation for free (free is good).</li>
+<li>Defer design decision and allow refactoring.</li>
+<li>Support abstractions.</li>
+<li>Expose dependencies (how much context do you need to set up to test a particular feature?).</li>
+</ul>
+<p><strong>What to test?</strong></p>
+<p>Following the encapsulation of private method, the public interface is <em>usually</em> what needs to be tested. Of course, there are exceptions.</p>
+<p><strong>How to test</strong></p>
+<p><em>BDD - Behavior Driven Design: Working from the boundaries of the app inside
+</em>TDD - Test Driven Design: Working from the core out.</p>
+<p>BDD requires much more mocking and, as a result, seems more prone to issues in terms of mocks not being aligned with the actual class and model.</p>
+<p>A few functions are to be tested:</p>
+<ul>
+<li>Incoming messages.</li>
+<li>Outgoing messages.</li>
+<li>Duck Typing.</li>
+<li>Inheritance structures.</li>
+</ul>
+<h3 id="Incoming-Interfaces"><a href="#Incoming-Interfaces" class="headerlink" title="Incoming Interfaces"></a>Incoming Interfaces</h3><p>These are the public methods of the class, tested making assertions about the expected response. A good example is attr_accessor.</p>
+<pre><code>class Dog
+    attr_accessor :name
+
+    def initialize (args={})
+        @leash = args[:leash]
+    end
+    [...]
+
+    def ready_to_go_out?
+        [...]
+        unless leash.has_bags?
+         return false
+        end
+        [...]
+    end
+end
+
+class DogTest &lt; MiniTest::Unit::TestCase
+
+    def setup
+        @dog = Dog.new(leash: Leash.new)
+        # here&#39;s the dependency injection!!
+    end
+
+    def test_responds_to_name
+        assert_respond_to(@dog, :name)
+    end
+end
+</code></pre><p>In the case dependency is injected (as before to make sure the leash has bags inside), this needs to be made evident in the test. Note that this is required as tests double up as well as documentation.</p>
+<p>Now the issue is that you might have different types of leash (leather, normal, long). To test Dog you can’t use an actual one, you need a double.</p>
+<pre><code>#say that we have so many leashes types, all in different classes
+# they will all be ducks, but we need the behavior to test the dog.
+class LeashDouble
+    [...]
+
+    def has_bags?
+        true
+    end
+end
+
+
+class DogTest &lt; MiniTest::Unit::TestCase
+
+    def setup
+        @dog = Dog.new(leash: LeashDouble.new)
+        # here&#39;s the dependency injection!!
+    end
+
+    def test_responds_to_name
+        assert_respond_to(@dog, :name)
+    end
+
+    def test_we_can_go_out
+        assert_equal @dog.go_out? true
+    end
+end
+</code></pre><p>Note that BDD requires extensive mocking, as in many cases the outer types will require some mock behavior from the more core classes.</p>
+<p>To be more precise, what you need from a Double is the behavior, not the leash itself. Now the risk is that the implementation of the object (the leash) might be updated, while the mock is not. This because the mock is, in a way, a sort of duplication (is it a violation of the DRY principle? who knows at this point). This will of course break your app badly.</p>
+<p>The easy way out of this is to implement a Duck Type testing, more on this later (the basic idea is to put the relevant testing in a module and include that module in the Double as well).</p>
+<h3 id="Outgoing-Messages"><a href="#Outgoing-Messages" class="headerlink" title="Outgoing Messages"></a>Outgoing Messages</h3><p>Outgoing messages are Queries or Commands, and in most cases they are not tested. If they need to be tested, a particular pattern for the test is required.</p>
+<pre><code>[...]
+
+def setup 
+    @observer = MiniTest::Mock.new
+    @gear         = Gear.new(
+                            chainring:     52,
+                            cog:         11,
+                            observer:     @observer)
+end
+
+def test_notifies_observers_when_cogs_changes
+    @observer.expect(:changed,true, [52,27])
+    @gear.set_cog(27)
+    @observer.verify
+end
+[...]
+</code></pre><p>Regarding the test:</p>
+<ul>
+<li>First line sets the check.</li>
+<li>Second line triggers the action.</li>
+<li>Third line actually does the testing.</li>
+</ul>
+<h3 id="Duck-typing"><a href="#Duck-typing" class="headerlink" title="Duck typing"></a>Duck typing</h3><p>When you have many objects that can pose as a duck, you cannot implement the same test in all of them by control-c and control-v. That is a blatant violation of DRY.</p>
+<p>As a test is, basically, a behavior - the idea is to lump the testing in a module (container of behavior) and then include this in the different modules.</p>
+<pre><code>module WalkerInterfaceTest
+    def test_that_it_walks_like_a_duck
+        assert_respond_to(@object, :walk_like_duck)
+    end
+end
+
+class DuckTesting &lt; MiniTest::Unit::TestCase
+    include WalkerInterfaceTest
+
+    def setup
+        @object = Duck.new
+    end
+end
+
+class ChickenTesting &lt; Minitest::Unit::TestCase
+    include WalkerInterfaceTest
+
+    def setup
+        @object = Chicken.new
+    end
+end    
+</code></pre><p>By including the module of the testing behavior, the testing will get run.</p>
+<h3 id="Testing-inheritance"><a href="#Testing-inheritance" class="headerlink" title="Testing inheritance"></a>Testing inheritance</h3><p>Inheritance actually presents many folds in terms of testing:</p>
+<ul>
+<li>Testing the interfaces abstract/concrete - done with a module that must be included in both the abstract class test and in the concrete class test.</li>
+<li>Testing concrete specific roles - done with a module to be included only by the concrete class.</li>
+<li>Testing unique behavior concrete class - included directly in the class method.</li>
+<li>Testing unique behavior abstract superclass - in some cases you need to include the behavior of a Subclass in the Superclass test. In these cases the pattern may be similar to the Doubles pattern above, with the same caveat (include to the doubles the same testing for the actual classes).</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;The importance of testing cannot be underestimated. As a personal note, I can’t believe that during my time coding in Fortran we did not 
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="Rails" scheme="http://andreacremese.github.io/tags/Rails/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>POODR - Notes from Chapter8 - Composition</title>
+    <link href="http://andreacremese.github.io/2014/05/04/chapter-8-composition/"/>
+    <id>http://andreacremese.github.io/2014/05/04/chapter-8-composition/</id>
+    <published>2014-05-04T22:28:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>“Composition is the act of combining together parts into complex wholes”.</p>
+<p>Unlike inheritance, where behavior and data could be promoted into an abstract class, in composition there is not a specific pattern between the objects, beside that they interact together to make the whole.</p>
+<p>Greyhound is a concrete class of the abstract class Dog, but Dog is not a concrete class of the abstract class Farm. So in the second case, the relationship cannot be of inheritance.</p>
+<p>At the same time, an Kitchen is an instance of the Room class, but it cannot inherit form House.</p>
+<h2 id="How-is-this-done"><a href="#How-is-this-done" class="headerlink" title="How is this done"></a>How is this done</h2><h4 id="Array-style-classes"><a href="#Array-style-classes" class="headerlink" title="Array style classes"></a>Array style classes</h4><p>First of all, the “container” of elements is built in an array-style. This might mean including behavior in the class what derives from somewhere else. <strong>Forwardable</strong> is a good way to do it (rather than trying to replicate the code you already have in the Array class).</p>
+<pre><code>class House
+    attr_accessible :rooms, :address
+
+    def initialize(args={})
+        @address    = args[:address]
+        @rooms         = args[:rooms]
+    end
+end
+
+require &#39;forwardable&#39;
+class Rooms
+    extend Forwardable
+    def_delegators :@rooms, :size, :each
+    include Enumerable
+    [...]
+end
+</code></pre><p>Forwardable allows to rely on the code that is available, to treat array-like elements as an array.</p>
+<h4 id="Factories"><a href="#Factories" class="headerlink" title="Factories"></a>Factories</h4><p>In addition, the idea is to delegate the creation of classes to a Factory. A Factory is a module as it encompasses only behavior and not data. </p>
+<p>The behaviors that are included are:</p>
+<ul>
+<li>To create the array-like container class (.build method below).</li>
+<li>To create the instances inside the array (.create_part method below).</li>
+</ul>
+<p>Note that OpenStruct is like struct, with the difference that the initialize accepts hash or arguments, rather than array).</p>
+<pre><code>require &#39;ostruct&#39;
+module RoomsFactory
+    # behavior #1, create the array like container class
+    def self.build(config, rooms_class = Rooms)
+        rooms_class.new(
+            config.collect{|room_config|
+                create_room(room_config)})
+    end    
+
+    # behavior #2, create the room from the config
+    def self.create_room(room_config)
+        OpenStruct.new(
+            name:             part_config[0],
+            width:     part_config[1],
+            length:     part_config[3]
+            )
+    end
+end
+</code></pre><h4 id="Basic-configurations"><a href="#Basic-configurations" class="headerlink" title="Basic configurations"></a>Basic configurations</h4><p>Note that the basic configurations for the objects are held by arrays of arrays. These are passed to .create_part in order to instantiate a new farm member.</p>
+<p>Meaning that the following code is used to create an animal farm:</p>
+<pre><code>NY_flat_config = [[&#39;kitchen&#39;, &#39;8&#39;,&#39;8&#39;],
+                [&#39;bathroom&#39;, &#39;4&#39;,&#39;6&#39;],
+                [&#39;bed_room&#39;, &#39;6&#39;,&#39;6&#39;]]
+
+
+House.new(address: &quot;times square, NYC&quot;, 
+            rooms:     RoomsFactory.build(NY_flat_config))
+</code></pre><p>The composition part is the .build. This method will take the array with the standard configuration, will create a room for each element of the array (which is an array itself).</p>
+<p>Of course, the point is to have different configurations in order to be able to create elements on the spot via the factory.</p>
+<pre><code>suburb_house_config = [[&#39;kitchen&#39;, &#39;15&#39;,&#39;15&#39;],
+                [&#39;bathroom1&#39;, &#39;8&#39;,&#39;10&#39;],
+                [&#39;bathroom2&#39;, &#39;5&#39;,&#39;7&#39;],                            [&#39;living_room&#39;, &#39;20&#39;,&#39;20&#39;],
+                [...]    
+                [&#39;bed_room1, &#39;14&#39;,&#39;16&#39;]]
+</code></pre><h4 id="Aggregation-vs-Collection"><a href="#Aggregation-vs-Collection" class="headerlink" title="Aggregation vs Collection"></a>Aggregation vs Collection</h4><p>Aggregation is where the elements are expected to be used as standalone, while collection is used when the elements only make sense if part of the whole.</p>
+<p>It would make little sense of use the room alone in the case of a construction and selling of a house (collection), while if the house is for rent it might make more sense for the room to be a standalone element (aggregation).</p>
+<h2 id="Inheritance-vs-Composition"><a href="#Inheritance-vs-Composition" class="headerlink" title="Inheritance vs Composition"></a>Inheritance vs Composition</h2><p>With inheritance, you get automatic delegation. Also, the code can be much more reasonable, usable and exemplary. Nonetheless, inheritance cannot be used in all cases (in some cases an element cannot really be an <em>is a…</em>).  Also, the fallout in case of mistake is much larger.</p>
+<p>With composition there is little or no automatic delegation. The tendency is to modularize the problem in many small parts (which is good) with small interfaces (which is good). As a drawback, composition is much harder to pry into from the outside.</p>
+<p><strong>note: all code in this page is pseudo-code. Check out my github for working examples. Or, even better, BUY THE BOOK</strong></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;“Composition is the act of combining together parts into complex wholes”.&lt;/p&gt;
+&lt;p&gt;Unlike inheritance, where behavior and data could be pro
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="Rails" scheme="http://andreacremese.github.io/tags/Rails/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>POODR - Notes from Chapter 7 Modules (and Inheritance, extended edition)</title>
+    <link href="http://andreacremese.github.io/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/"/>
+    <id>http://andreacremese.github.io/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/</id>
+    <published>2014-04-23T06:33:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Chapter 7 of <a href="http://www.poodr.com/" target="_blank" rel="external">Poodr</a> builds on top of the previous material on inheritance in <a href="http://andreahk5.github.io/blog/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/" target="_blank" rel="external">chapter 6</a>. This mainly as module and mix-ins has a very similar relationship with inheritance.</p>
+<p><strong>Modules are another method for automatic delegation</strong> (see also inheritance). Unlike inheritance, modules are used to share behavior between classes that do not have a common abstract type for behavior promotion.</p>
+<h3 id="Sharing-behavior-duck-typing"><a href="#Sharing-behavior-duck-typing" class="headerlink" title="Sharing behavior (duck typing)"></a>Sharing behavior (duck typing)</h3><p>Imagine that you have a number of classes that share a behavior, but they cannot be all specialization of an abstract class. In this case we will <strong>abstract the behavior by itself, rather than abstracting a class</strong>.  </p>
+<p>The idea is to group the methods required in common in a module, and include this module in all classes required.</p>
+<p>Use a verbose name for the module is also recommended, as this will be a container of behavior.</p>
+<pre><code>class Listened
+    def listened_lately?(listenable, time_frame)
+        puts &quot;the #{listenable.class} has been listened in the last #{time_frame}&quot;
+        false
+    end
+end
+
+module Listenable
+    attr_writer :listened
+
+    def listened
+        @listened ||= ::Listened.new
+        # this is the injection
+    end
+
+    def listened_lately?
+        listened.listened_lately(self,time_frame)
+    end
+
+    # this is the template method, include might override
+    def time_frame
+        &quot;7 days&quot;
+    end
+
+
+end
+
+class Audiobook
+    include Listenable
+
+    # This is the specialized method
+    def time_frame
+        &quot;30 days&quot;&quot;
+    end
+
+end
+
+class Podcast
+    include Listenable
+
+    # This is the specialized method
+    def time_frame
+        &quot;5 days&quot;&quot;
+    end
+
+end
+
+p = Podcast.new
+p.listened_lately?
+</code></pre><p>In this quick example:</p>
+<ul>
+<li>Audiobook and Podcast cannot be placed in an inheritance arrangement.</li>
+<li>The same pattern for <strong>template method</strong> introduced in inheritances is used for modules.</li>
+<li>All classes implement the module.</li>
+<li>If module sends a message, it must provide the template implementation (even if this is just an error).</li>
+</ul>
+<h3 id="Looking-methods-up-the-food-chain"><a href="#Looking-methods-up-the-food-chain" class="headerlink" title="Looking methods up the food chain"></a>Looking methods up the food chain</h3><p>When a method is called on a class, or an instance of a class, this is searched up the inheritance tree and the module tree. As soon as it is found, the search is interrupted (and that is why we use template methods).</p>
+<p>See below a brief explanation about the method research:</p>
+<ul>
+<li>First, the method is searched locally.</li>
+<li>Then it is searched in the Singleton class (methods defined for that instance only).</li>
+<li>After, it is searched in the modules included, starting form the last “included” (bottom in the class).</li>
+<li>Then, the superclass is invoked and searched.</li>
+</ul>
+<p>When multiple inheritances and modules are included, tracing this might become very complicated. Hence, the idea is to keep the inheritance pyramid as narrow as possible.</p>
+<h3 id="Abstraction-is-all-or-nothing"><a href="#Abstraction-is-all-or-nothing" class="headerlink" title="Abstraction is all or nothing"></a>Abstraction is all or nothing</h3><p>When implementing abstractions in modules (or superclasses) all of the <em>include</em> or of the subclasses must implement all of the abstraction. Pick and mix can create some serious issues.</p>
+<p>And, at the end of the day, what would be the point of having modules if you then cherry pick the behavior.</p>
+<h3 id="Liskov-substitution"><a href="#Liskov-substitution" class="headerlink" title="Liskov substitution"></a>Liskov substitution</h3><p>Each subclass must be a suitable substitution for the superclass.</p>
+<p>This means that taking q(x), being q a property and x and element of T, q(y) must be verified for y being and element of S, and S being a subtype of T.</p>
+<p>Note that the opposite is not required, meaning this is a one way street (specialization might add behavior).</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Chapter 7 of &lt;a href=&quot;http://www.poodr.com/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Poodr&lt;/a&gt; builds on top of the previous material on inheritan
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="Rails" scheme="http://andreacremese.github.io/tags/Rails/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>POODR - Notes from Chapter 6 Inheritance (whys and hows)</title>
+    <link href="http://andreacremese.github.io/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/"/>
+    <id>http://andreacremese.github.io/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/</id>
+    <published>2014-04-12T18:39:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>In the big picture the why remains always the same for <a href="http://www.poodr.com/" target="_blank" rel="external">poodr</a> book: reduce the marginal cost of adding a functionality to a ruby application.</p>
+<p>Here are some notes on Chapter 6 - Inheritance.</p>
+<h4 id="The-Basics"><a href="#The-Basics" class="headerlink" title="The Basics"></a>The Basics</h4><p>Inheritance, at its core, is an <strong>automatic message delegation</strong> system. As seen in previous chapter, the core of OOD relies on messages and how these are exchanged between classes.</p>
+<p>Inheritance comes handy when one class develops and needs to have different behaviors. At first it seems tempting to swell the one class (or data type) with multiple behaviors. </p>
+<p>This will most likely violate the <strong>single responsibility</strong> requirement (see chapter2). You’ll have classes with a gazilion of if statements or, even worse, case .. where to decide what behavir to invoke. </p>
+<p>In order to avoid this, the idea is use inheritance. Conceptually, the mechanics of the process are to <strong>promote</strong> the generic behavior to the <strong>abstract</strong> class (the parent, or superclass), and to leave the <strong>specialized</strong> behavior in the <strong>concrete</strong> classes. </p>
+<p>One watch it: if inheritance is implemented with only one “child” class, it is very likely done wrong!</p>
+<h4 id="Automatic-messaging-delegation"><a href="#Automatic-messaging-delegation" class="headerlink" title="Automatic messaging delegation"></a>Automatic messaging delegation</h4><p>When using inheritance, if a message (method) is not present in the concrete (child) class, the call is automatically pushed up to the super class. </p>
+<p>On the other hand  if the method is present in the child class the parent class method is not considered at all.</p>
+<p>This can be overrided and the beaviors mixed by calling <code>super</code> in the concrete class. This allows to retrieve the behavior from the superclass.</p>
+<pre><code>class Abstract
+
+    def some_method
+        [...]
+    end
+
+    def some_other_method
+        [...]
+    end
+end
+
+class Concrete &lt; Abstract
+
+    def some_method
+        [...]
+        # the method in the Abstract class is NOT invoked
+    end
+
+    def some_other_method
+        [...]
+        super
+        # the method in the Abstract class IS invoked
+    end
+end
+</code></pre><p>Note that a <code>super</code> call is an admission that the concrete class knows behaviors of the abstract class. In other word, <strong>calling super is a coupling</strong>. And coupling is bad as it might hinder the capability of the code to be scaled up.</p>
+<h4 id="Promoting-Behavior…"><a href="#Promoting-Behavior…" class="headerlink" title="Promoting Behavior…"></a>Promoting Behavior…</h4><p>The idea is to put all the behavior that is common (abstract) in the super class, letting the concrete classes to specialize.</p>
+<h4 id="…in-initialization-Hook-message"><a href="#…in-initialization-Hook-message" class="headerlink" title="…in initialization (Hook message)"></a>…in initialization (Hook message)</h4><p>This is implemented right off the bat in the <code>initialize</code> method. In order to minimize the .super calls, the technique for the .new are to rely on explicit messages passed between the superclass and the child.</p>
+<ul>
+<li>Let the superclass have the initialize method.</li>
+<li>At the end of the initialize call a post_initialize method (hook message), that contains the specialized behavior for the concrete class.</li>
+<li>The post_initialize method needs to be present in the superclass - but in this case it just spits out nil.</li>
+</ul>
+<p>This is also called <strong>hook message</strong>. </p>
+<pre><code>class Abstract
+
+    def initialize(args)
+        [...]
+
+        post_initialize(args)
+    end
+
+    def post_initialize(args)
+        nil
+    end
+end
+
+class Concrete1 &lt; Abstract
+
+    def post_initialize(args)
+        @specialized_variable1     = args[:specialized_variable1]
+    end
+
+    [...]
+end
+
+class Concrete2 &lt; Abstract
+
+    def post_initialize(args)
+        @specialized_variable2     = args[:specialized_variable2]
+    end
+
+    [...]
+end
+</code></pre><h4 id="…in-defaults-for-initialization-Template-Method"><a href="#…in-defaults-for-initialization-Template-Method" class="headerlink" title="…in defaults for initialization (Template Method)"></a>…in defaults for initialization (Template Method)</h4><p>Defaults for variables are best to be messages (surprise surprise) and to be implemented in the specialized class - see example below. </p>
+<p>A default value is to be given for the abstract class as well if possible. In some cases this is not possible or would not make sense.</p>
+<p>The fact that the specialized class needs to implement a default value should not be left hanging. This is where a <code>raise</code> comes handy.</p>
+<pre><code>class Abstract
+
+    def initialize(args)
+        @variable1         = args[:variable1] || variable1
+        @varialve2        = args[:variable2] || variable2
+    end
+
+    def variable1
+        &quot;value1 - abstract value&quot;
+    end
+
+    #In the case variable2 cannot be set to a sensible value in the abstraction
+    #and needs to be in the specialized class, an error would allow easier debugging later on.
+
+    def variable2
+        raise NotImplementedError,
+        &quot;This #{self.class} cannot respond to: #{__method__}&quot;
+    end
+
+    end
+
+    class Concrete1 &lt; Abstract
+
+        def variable1
+            &quot;value1 - specialized value 1&quot;
+        end
+
+        [...]
+
+    end
+
+    class Concrete2 &lt; Abstract
+
+        def variable1
+            &quot;value1 - specialized value 1&quot;
+        end
+
+        [...]
+
+    end
+</code></pre><h4 id="…for-behavioral-methods"><a href="#…for-behavioral-methods" class="headerlink" title="…for behavioral methods"></a>…for behavioral methods</h4><p>In order to decouple as much as possible, the idea is to implement all of the behavior present in the child classes, and delegate down to them the behavior via a local message.</p>
+<p>In a way, this seems to suggest that the superclass should have the public methods that are expected to call by an external source (if this is within the shared abstract behavior), with the specialized methods feeding up the messages to the public methods.</p>
+<pre><code>    class Animal
+
+        [...]
+
+        public
+
+        def speak
+            # some abstract behavior might be here ...
+            local_speak
+        end
+
+        private
+
+        def local_speak
+            &quot;the #{self.class} has not implemented #{__method__}&quot;
+            # Note that this might require a different behavior, 
+            # depending on what the method is supposed to do.
+        end
+
+    end
+
+    class Dog &lt; Animal
+
+        private
+
+        def local_speak
+            &quot;Bark Bark&quot;
+        end
+
+        [...]
+
+    end
+
+    class Cat &lt; Animal
+
+        private
+
+        def local_speak
+            &quot;Meeew&quot;
+        end
+
+        [...]
+
+    end
+</code></pre><h4 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h4><p>Some of my take aways:</p>
+<ul>
+<li>Promote/specialize behavior.</li>
+<li>Abstract =&gt; Superclass, Concrete behavior =&gt; child class.</li>
+<li>Use Hook Method and Template Methods for initialization and defaulting. </li>
+<li>Pass messages between superclass and child.</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;In the big picture the why remains always the same for &lt;a href=&quot;http://www.poodr.com/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;poodr&lt;/a&gt; book: red
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="rails" scheme="http://andreacremese.github.io/tags/rails/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Recursion and stack</title>
+    <link href="http://andreacremese.github.io/2014/04/08/recursion-and-stacks/"/>
+    <id>http://andreacremese.github.io/2014/04/08/recursion-and-stacks/</id>
+    <published>2014-04-09T05:51:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>As an intermission in my POODR coding adventure (et all), I am working on data structure. </p>
+<p>The “Concise Notes on Data Structures and Algorithms - Ruby Edition” by Christopher Fox of James Madison University <a href="http://w3.cs.jmu.edu/spragunr/CS240/ConciseNotes.pdf" target="_blank" rel="external">link</a> gives a nice and thorough view of data types and algorithms.</p>
+<p>For those with a strong stomach, I am even putting together a <a href="https://github.com/AndreaHK5/DataStructures" target="_blank" rel="external">GitHub</a> repo with a few trials on the exercises - updating as I go along.</p>
+<p>Anyhow, there are a couple of interesting consideration I wanted to blog about.</p>
+<h4 id="Interfaces-it-is-always-about-interfaces"><a href="#Interfaces-it-is-always-about-interfaces" class="headerlink" title="Interfaces, it is always about interfaces"></a>Interfaces, it is always about interfaces</h4><p>The concise notes do not have the best ruby syntax, far from it. And that is ok, it is a book about Data Structures. For the most part, POODR would have a things or two to say about the coding style.</p>
+<p>Regardless this, <strong>the concept of interface is very strong in the explanation of the data types too</strong>. Each data type is progressively introduced, from Containers onwards, by stating the public interface a certain type needs to offer to the outside world to be worthy.</p>
+<p>This sounds like an elementary consideration (and maybe indeed it is), but nonetheless it is pretty interesting how this pattern is very consistent with the cornerstone pattern of POODR - which is about messages and interfaces.</p>
+<p>This is correlated to the implementation and, most importantly, to the testing.</p>
+<h4 id="Recursions-VS-Stacks"><a href="#Recursions-VS-Stacks" class="headerlink" title="Recursions VS Stacks"></a>Recursions VS Stacks</h4><p>The concept that a recursion can be solved with a stack and vice versa is one of those truths hidden in the eye of the sun, but the implications for are quite interesting. At the end of it, the computer will have its memory stack with allocated records for each recursion (so, basically, a stack..). </p>
+<p>So why not implementing the problem as a stack in the first place? </p>
+<p>The basic pattern for Stack implementation of a recursion requires:</p>
+<ol>
+<li>Create a Stack.</li>
+<li>Push the appropriate value in the Stack.</li>
+<li>Iteration over the values.<ul>
+<li>Termination condition.     </li>
+<li>Pop the value from Stack.</li>
+<li>Do something with the value</li>
+<li>Add node to the stack</li>
+</ul>
+</li>
+<li>Return the last pop</li>
+</ol>
+<p>See also this <a href="http://stackoverflow.com/questions/3391285/how-to-convert-a-recursive-function-to-use-a-stack" target="_blank" rel="external">Stack Overflow</a>.</p>
+<p>So, anyway, my basic implementation of a factorial calculation as a stack rather than recusrsion is as follows (it has been tested so HOPEFULLY it should be fine). Of course, all this is academic, but it still was fun.</p>
+<pre><code>class FactorialsTry
+    attr_accessor :num
+    def initialize num
+        @num = num
+    end
+
+    def factorial_recursive
+        factorial_rec(@num)
+    end
+
+    def factorial_stack
+        factorial_stk(@num)
+    end
+
+    private
+
+    def factorial_rec number
+        if number == 0
+            1
+        else
+            number*factorial_rec(number-1)
+        end
+    end
+
+
+    def factorial_stk number
+        stack = LinkedStack.new
+        stack.push(number)
+
+        (number-1).downto(1) do |num|
+            a = stack.pop
+            stack.push(a*num)
+        end
+        stack.pop
+    end
+end
+</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;As an intermission in my POODR coding adventure (et all), I am working on data structure. &lt;/p&gt;
+&lt;p&gt;The “Concise Notes on Data Structures a
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="DSA" scheme="http://andreacremese.github.io/tags/DSA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>POODR - Notes from Chapter 5 - Duck Typing</title>
+    <link href="http://andreacremese.github.io/2014/04/07/poodr-chapter5-duck-typing/"/>
+    <id>http://andreacremese.github.io/2014/04/07/poodr-chapter5-duck-typing/</id>
+    <published>2014-04-08T04:50:00.000Z</published>
+    <updated>2017-06-08T18:56:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Chapter 5 of Practical Object Oriented Design in Ruby presents the basic principle of <strong>Duck Typing</strong>. This is one of the ways to implement OOD and keep down the cost of scaling your app.</p>
+<h3 id="The-absolute-basic"><a href="#The-absolute-basic" class="headerlink" title="The absolute basic"></a>The absolute basic</h3><p>Keep the interface constant and focus on the functionality that you need from the object you are calling. Structure the call in such a way that the message is “get_prepared_for_this”, rather than micromanage how this is achieved form the caller class.</p>
+<p>In this way, <strong>an object is really defined by its interface, rather then by its data</strong>.</p>
+<h3 id="Duck-typing-how-not-to-do-it"><a href="#Duck-typing-how-not-to-do-it" class="headerlink" title="Duck typing, how not to do it"></a>Duck typing, how not to do it</h3><p>If what I want from a Duck is to walk_like_a_duck, any object that implements a .walk_like_a_duck is a duck to me. </p>
+<p>So, in slightly more serious words, if I have a common interface the <em>sender</em> of the message does not need to know the specifics of the object that am I calling. Let’s delve into this by grades.</p>
+<p>In an atomic version, say that I want to move my animals. One implementation could be:</p>
+<pre><code>class MyFarm
+ attr_reader :duck, :cow, :dog, :leash, :cowbell
+ [...]
+     def exodus
+        duck.walk_like_duck
+        cow.walk_like_cow(cowbell)
+        dog.walk_like_dog(leash)
+    end
+end
+</code></pre><p>There are a few aspects of this code that give a clue about <strong>too much intertwining among classes</strong>. There are two main types of dependency in this type of coding:</p>
+<ul>
+<li>MyFarm knows exactly each and every action about the exodus, and know exactly what animals (and beyond) are moving, and how they are moving. Each animal that is added, exodus needs to be updated. </li>
+<li>MyFarm knows exactly the different interface and arguments in each and every animal. Which means, anything changes in those interfaces, MyFarm has to change.</li>
+</ul>
+<p>This looks very similar to sequential coding. Another slightly better version of this implements case switchers.</p>
+<pre><code>    class MyFarm
+     attr_reader :duck, :cow, :dog, :leash, :cowbell
+     [...]
+         def exodus(animals)
+            animals.each do |animal|
+            case animal
+            when Dog
+                animal.walk_like_dog(leash)
+            when Duck
+                animal.walk_like_duck
+            when Cow
+                animal.walk_like_cow(cowbell)
+            end
+        end
+    end
+</code></pre><p>This is still overly constrained and intertwined. Any change in rooster, additional animal and whatnot will cause huge disruption. Also note how MyFarm needs to know a lot about the animals.</p>
+<h3 id="Duck-typing-reason-1-a-common-interface-same-public-method"><a href="#Duck-typing-reason-1-a-common-interface-same-public-method" class="headerlink" title="Duck typing, reason #1 - a common interface: same public method"></a>Duck typing, reason #1 - a common interface: <em>same public method</em></h3><p>At the end of the day <strong>every animal (object) is called upon for one reason and one reason only</strong>, to walk. So the idea is for the calling class to use the <strong>same interface</strong>, exactly as every object is here for one reason only.</p>
+<pre><code>class MyFarm
+ attr_reader :duck, :cow, :dog, :leash, :cowbell
+ [...]
+     def exodus(exilers)
+         exilers.each {|exiler| 
+                         exiler.walk(arguments)}
+     end
+
+end    
+</code></pre><p>Note that, very loosely, the exilers now receive a generic arguments. This intermediate step is not really resolved, it merely serves as a spring board for the next paragraph. Please read on.</p>
+<h3 id="Duck-typing-reason-2-no-need-to-pass-arguments-across-passing-self"><a href="#Duck-typing-reason-2-no-need-to-pass-arguments-across-passing-self" class="headerlink" title="Duck typing, reason #2 - no need to pass arguments across: passing self"></a>Duck typing, reason #2 - no need to pass arguments across: passing <em>self</em></h3><p>The second aspect of duck typing, that I personally find a bit underplayed in the book narrative in comparison with its potential (or, to better define, what <em>I think</em> its potential is), is the fact that duck typing allows you to <strong>remove the need to pass arguments across</strong>. I personally think this is awesome.</p>
+<pre><code>class MyFarm
+ attr_reader :duck, :cow, :dog, :leash, :cowbell
+ [...]
+     def exodus(exilers)
+         exilers.each {|exiler| 
+                         exiler.walk(self)}
+     end
+
+end    
+</code></pre><p>By passing <em>self</em> to the exiler, the exiler now has access to all items in the caller instance of MyFarm. This provides an additional layer of security for the implementation. So, for example, the tongue in cheek implementation of the dog would be:</p>
+<pre><code>    class Dog
+
+        def walk(farm)
+            leash = farm.leash
+            walk_with_leash(leash)
+            [...] 
+        end
+
+        private
+
+        def walk_with_leash(leash)
+            [...]
+        end
+    end
+</code></pre><p>Note that farm does not need to pass the leash specifically, but pretty much the whole farm is passed.</p>
+<h3 id="Extending-the-Dog’s-behavior-example"><a href="#Extending-the-Dog’s-behavior-example" class="headerlink" title="Extending the Dog’s behavior example"></a>Extending the Dog’s behavior example</h3><p>Say that a new dog is taken on board in the farm, it is a Greyhound. If she is quite like my Greyhound, for half the year she needs a coat to walk outside.</p>
+<p>In the very first implementation this would have caused a lot of pain to add: both the sender and the receiver would have needed to be re implemented simply to pass on the coat. Also, I cannot have the Greyhound to walk with a coat in summer, so that if statement would have needed to be in the MyFarm (most likely), intertwining even more the methods.</p>
+<p>In the duck type implementation the sender does not change at all (as the interface does not change at all, beside giving an attr_reader to :dog_coat)</p>
+<pre><code>    class MyFarm
+     attr_reader :duck, :cow, :dog, :leash, :cowbell, :dog_coat
+     [...]
+         def exodus(exilers)
+             exilers.each {|exiler| 
+                             exiler.walk(self)}
+         end
+
+    end
+</code></pre><p>And now for the modified Dog class, that would allow the happy Greyhound to reach the end of the exodus without becoming a popsicle.</p>
+<pre><code>    class Dog
+
+        def walk(farm)
+            leash = farm.leash
+            walk_with_leash(leash)
+            if is_winter?
+                coat = farm.dog_coat
+                put_on_coat
+            end
+            [...] 
+        end
+
+        private
+
+        def walk_with_leash(leash)
+            [...]
+        end
+
+        def put_on_coat(coat)
+            [...]
+        end
+    end
+</code></pre><p>Note that the only changes are in the Dog class, in order to cater for the new requirement. Also, in an attempt at keeping the public interface as consistent as possible, the put_on_coat is a <em>private</em> method that the external world does not need to see.</p>
+<p><strong>At the end of the day, what you need from objects is to walk and participate to the exodus, how they do it is really their own business. An object is hence defined by its behavior - not by its data or content.</strong></p>
+<h3 id="Polymorphism"><a href="#Polymorphism" class="headerlink" title="Polymorphism"></a>Polymorphism</h3><p>This is the characteristic of a message to be able to accept many forms from a receiver. <em>poly</em> = many, <em>morphos</em> = forms. In the case above, .walk is the interface (or the message) and it has severely different meanings for each receiver. Hence, it is polymorphic.</p>
+<h3 id="A-word-of-caution"><a href="#A-word-of-caution" class="headerlink" title="A word of caution"></a>A word of caution</h3><p>Implementing Duck Typing requires some caution, as <strong>objects are defined by their interfaces</strong>, so we presume that each player plays fair. The sender has some blind trust in the receiver. </p>
+<p>It also makes the code a bit less immediate to understand, but much easier to service as we have seen with a very silly example (well, the Greyhound was happy to have the coat on).</p>
+<h3 id="TDD-as-interface-testing-and-documentation"><a href="#TDD-as-interface-testing-and-documentation" class="headerlink" title="TDD as interface testing - and documentation"></a>TDD as interface testing - and documentation</h3><p>An interesting aspect about Testing Driven Development and Duck Typing is the fact that Duck Typing really relies on interfaces. This basically means that </p>
+<ol>
+<li>Your testing should focus on public interfaces.</li>
+<li>Your testing will become in all effects a documentation for the public interfaces.</li>
+</ol>
+<h3 id="Scope-for-improvement"><a href="#Scope-for-improvement" class="headerlink" title="Scope for improvement"></a>Scope for improvement</h3><p>I have just realized that the next improvement could be not even say .walk to the exilers, but rather .to_exile. A parrot will most definitely fly, not walk (unless is the Norvegian Blue from the Monthy Python)…</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Chapter 5 of Practical Object Oriented Design in Ruby presents the basic principle of &lt;strong&gt;Duck Typing&lt;/strong&gt;. This is one of the wa
+    
+    </summary>
+    
+    
+      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
+    
+      <category term="Rails" scheme="http://andreacremese.github.io/tags/Rails/"/>
+    
+  </entry>
+  
+</feed>

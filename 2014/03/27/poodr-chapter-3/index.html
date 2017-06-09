@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>POODR - Notes from Chapter 3</h1><p class="post-meta">Posted on Mar 27 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>Still a bit jet lagged form the airplane, here are some notes from chpater #3 of Poodr, all about <strong>managing dependencies</strong>.</p>
+<p>As we know, messages are at the base of OOD. For an object ot interact with another there three options:</p>
+<ul>
+<li>Knowing the interaction personally (embed it in the method). </li>
+<li>Inheriting the interaction.</li>
+<li>Knowing an object that knows the interaction.</li>
+</ul>
+<p>The third is the one that is discussed in this chapter (and in this post), as it create <strong>dependencies</strong>.</p>
+<h3 id="Dependencies"><a href="#Dependencies" class="headerlink" title="Dependencies"></a>Dependencies</h3><p>Dependencies are a necessary evil as they are required in order for the object to interact and send messages, BUT they contstrain the solution and the code. <em>Dependencies generate coupling</em>. Some degree is needed, the name of the game is to keep this to the minimum required.</p>
+<p>If left unattended, coupling might strangle your capacity to change the code later on. Ultimately, a dependency might prevent (or make it really expensive) to change an object as the ripple effects would be amplified a felt across the stack.</p>
+<p>Type of dependencies:</p>
+<ul>
+<li>An object is instantiated <strong>inside</strong> another object.</li>
+<li>The method of another object is called in a <code>self.method</code>.</li>
+<li>The instatiation of another object requires some arguments that are not needed for the original object.</li>
+<li>The order of the arguments for the instantiation is important.</li>
+</ul>
+<h3 id="Duck-typing"><a href="#Duck-typing" class="headerlink" title="Duck typing"></a>Duck typing</h3><p>An interesting pre requisite concept for decoupling is <strong>Duck Typing</strong>. There are multiple definitions around, but the basic one is still my favourite:</p>
+<p><em>When I see a bird that walks like a duck and swims like a duck and quacks like a duck, I call that bird a duck.</em> (From the <a href="http://en.wikipedia.org/wiki/Duck_typing" target="_blank" rel="external">wikipedia page</a>)</p>
+<p>Note how the definition above concentrates on the message rather than on the attributes of the Duck. It does not need to have feathers, a beek or wings. It needs to give me some messages (walk and wuack). Hence the message-centric concpet for OOD.</p>
+<p>My very humble interpretation stems from it, but with a different spin: </p>
+<p><em>As long as what I need form a Duck is for it to walk_like_a_duck and quack_like_a_duck - I call “duck” a thing does these actions.</em></p>
+<p>This is the definition of a duck from the point of view of the object that is “using” the duck (sorry duck). But anyway, <strong>it is the message that is important, not the attribute</strong>.</p>
+<h3 id="Dependency-injection"><a href="#Dependency-injection" class="headerlink" title="Dependency injection"></a>Dependency injection</h3><p>This is a technique that allows decoupling for objects. The aim is to </p>
+<ol>
+<li>Isolate objects one another.</li>
+<li>Rely on messages only for the dependencies.</li>
+<li>Considering anything that can walk_like_a_duck as a duck, if that is the only thin you need from it.</li>
+</ol>
+<p>(Again, sorry duck).</p>
+<pre><code>class SomeObject
+    attr_reader :duck
+    def initialize duck
+        @duck = duck
+    end
+    ...
+    def some_method
+        ().duck.walk_like_a_duck
+    end
+end
+</code></pre><p>Is the correct implementation. These few lines actually have a lot inside. The mainfeature is that <strong>whatever I pass into the object that has a .walk_like_a_duck method will be a duck.</strong> If i convince a chicken to walk like a duck (sorry both for the mishap, it is for a good cause), for the SomeObject that chicken is a duck. And that is good news for decoupling!!</p>
+<h3 id="When-dependency-injection-is-not-really-possible"><a href="#When-dependency-injection-is-not-really-possible" class="headerlink" title="When dependency injection is not really possible"></a>When dependency injection is not really possible</h3><p>In some horror cases, dependency injection is not really possible. This means that some work arounds are needed.</p>
+<ol>
+<li>Isolate instance creation.</li>
+<li>Lazily isolate instance creation.</li>
+</ol>
+<p>In the first case, the initialization (aka construction) of the other object happens at the initialize. This way it should be easier to refactor, see example below.</p>
+<pre><code>class SomeObject
+    attr_reader :duck
+    def initialize feathers
+        @duck = Duck.new(feathers)
+    end
+    ...
+    def some_method
+        ().duck.walk_like_a_duck
+    end
+end
+</code></pre><p>This is good, but still leaves the door open to any potentian issue right off the bat when SomeObject is created. Another option is to call a new duck (sorry old duck) only as needed (lazily), like this:</p>
+<pre><code>class SomeObject
+    attr_reader :feathers
+    def initialize feathers
+        @feathers = feathers
+    end
+    ...
+    def some_method
+        ().duck.walk_like_a_duck
+    end
+
+    def duck
+        @duck ||= Duck.new(feathers)
+    end
+end
+</code></pre><p> If duck has already been instantiatied we have it, otherwise we instantiate a new one, but only where and when it is needed. Note that <code>duck</code> in the <code>.walk_like_a_duck</code> is a message, not an attribute.</p>
+<h3 id="Isolating-calls-to-other-classes’-methods"><a href="#Isolating-calls-to-other-classes’-methods" class="headerlink" title="Isolating calls to other classes’ methods"></a>Isolating calls to other classes’ methods</h3><p>Digging deeper into the code, the .walk_like_a_duck is a method that still pertains to a differen object, being this a duck or a very well trained chicken that can fake the duck walk.</p>
+<p>A futher level of decoiupling this is to isolate the method and turn this into a <code>.self</code> method. So in the example below (repeated for reference and in total violation to the DRY paradigm):</p>
+<pre><code>class SomeObject
+    attr_reader :duck
+    def initialize duck
+        @duck = duck
+    end
+    ...
+    def some_method
+        ().duck.walk_like_a_duck
+    end
+end
+</code></pre><p>We can refactor:</p>
+<pre><code>class SomeObject
+    attr_reader :duck
+    def initialize duck
+        @duck = duck
+    end
+    ...
+    def some_method
+        ().walking
+    end
+
+    def walking 
+        duck.walk_like_a_duck
+    end
+
+end
+</code></pre><p>The call to the external method is now isolated. Everyone is happy, even the bat-chicken.</p>
+<h3 id="Argument-order-dependency"><a href="#Argument-order-dependency" class="headerlink" title="Argument-order dependency"></a>Argument-order dependency</h3><p>For the constructor method, the order in which arguments are passed in is important. Furthermore, the absence of an argument will inevitably cause your code to fail.</p>
+<p>The first option is to remove the single arguments and pass in a single hash with the arguments needed to construct the object.</p>
+<pre><code>cass Duck
+    attr_reader :feathers, wings
+    def initialize(args)
+        @feathers = args[:feathers]
+        @wings = args[:wings]
+    end
+end
+
+arguments = {
+        :feathers =&gt; &quot;some feathers&quot;,
+        :wings =&gt; &quot;some wings&quot;
+        }
+
+Duck.new(arguments)
+</code></pre><p>This adds verbosity, removes the dependencies on the order, and furnishes an explicit documentation for the code, embedded in the code.</p>
+<h3 id="Default-values"><a href="#Default-values" class="headerlink" title="Default values"></a>Default values</h3><p>This is to tackle the lack of argument of creation (at the end of the day, a duck has 2 wings so far but we want to make sure - OK it is a silly example but I hope you can still follow).</p>
+<p>The easiset way is to implement this in the constructor (initialization) method</p>
+<pre><code>cass Duck
+    attr_reader :feathers, wings
+    def initialize(args)
+        @feathers = args[:feathers] || 1000
+        @wings = args[:wings] || 2
+    end
+end
+</code></pre><p>Now this is OK, beside for booleans. The || method takes whatever is on the left, unless this is <em>nil</em> or <em>false</em>. If I pass a bool, <em>nil</em> is one of the two states I want. Therefore the following statement</p>
+<pre><code>@bool = args[:boolean] || true
+</code></pre><p>Seems to suggest to take as a default BUT it will take true in all cases (if I pass nil, it will go to the right hand sides). As we would say in Italy, NottaGudda.</p>
+<p>Two patters come to the rescue: </p>
+<ul>
+<li>Using .fetch method or </li>
+<li>isolate the default (isolate…surprise-surprise).</li>
+</ul>
+<p>The fetch method can be called on the args hash, and try getting the value at the key desired. If not present, it skips to the next value.</p>
+<pre><code>cass Duck
+    attr_reader :feathers, wings
+    def initialize(args)
+        @feathers = args.fetch(:feathers, 1000)
+        @wings = args.fetch(:wings, 2)
+    end
+end
+</code></pre><p>Another metod that might be interesting is .merge.</p>
+<pre><code>cass Duck
+    attr_reader :feathers, wings
+    def initialize(args)
+        args = defaults.merge(args)
+        @feathers = args.[:feathers]
+        @wings = args.[:wings]
+    end
+
+    def defaults
+        {:feathers =&gt; 1000, :wings =&gt; 2}
+    end
+end
+</code></pre><p>.merge will put in new values ONLY if where the keys are not present. Spiffy.</p>
+<h3 id="When-argument-ordering-refactoring-is-not-possible"><a href="#When-argument-ordering-refactoring-is-not-possible" class="headerlink" title="When argument-ordering refactoring is not possible"></a>When argument-ordering refactoring is not possible</h3><p>I will not get into this example in detail, but the idea is to create a <em>factory</em> to generate the instance of the object.</p>
+<ul>
+<li>putting the object in a module</li>
+<li>having another module wrapper.</li>
+<li>seconding the construction of the object in a <code>.self</code> method in the the wrapper module. This module will accept the hash as input.</li>
+</ul>
+<h3 id="Direction-of-the-dependency"><a href="#Direction-of-the-dependency" class="headerlink" title="Direction of the dependency"></a>Direction of the dependency</h3><p>Who is suppsed to include who? A few things to keep in mind:</p>
+<ul>
+<li>How often does a model change?</li>
+<li>Is a model concrete or abstract?</li>
+<li>Changing a model with many dependencies will result in widespread consequences.</li>
+</ul>
+<h3 id="A-word-of-caution"><a href="#A-word-of-caution" class="headerlink" title="A word of caution"></a>A word of caution</h3><p>All this is to be taken into prospective. Will it save time in the next build to implement these changes? And in the build afterwards.</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/04/01/poodr-chapter-4/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 4">← Previous Post</a></li><li class="next"><a href="/2014/03/27/Notes-on-chapter-2/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 2">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

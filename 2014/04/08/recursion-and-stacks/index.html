@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Recursion and stack</h1><p class="post-meta">Posted on Apr 8 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/DSA/" class="tag post-meta">DSA</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>As an intermission in my POODR coding adventure (et all), I am working on data structure. </p>
+<p>The “Concise Notes on Data Structures and Algorithms - Ruby Edition” by Christopher Fox of James Madison University <a href="http://w3.cs.jmu.edu/spragunr/CS240/ConciseNotes.pdf" target="_blank" rel="external">link</a> gives a nice and thorough view of data types and algorithms.</p>
+<p>For those with a strong stomach, I am even putting together a <a href="https://github.com/AndreaHK5/DataStructures" target="_blank" rel="external">GitHub</a> repo with a few trials on the exercises - updating as I go along.</p>
+<p>Anyhow, there are a couple of interesting consideration I wanted to blog about.</p>
+<h4 id="Interfaces-it-is-always-about-interfaces"><a href="#Interfaces-it-is-always-about-interfaces" class="headerlink" title="Interfaces, it is always about interfaces"></a>Interfaces, it is always about interfaces</h4><p>The concise notes do not have the best ruby syntax, far from it. And that is ok, it is a book about Data Structures. For the most part, POODR would have a things or two to say about the coding style.</p>
+<p>Regardless this, <strong>the concept of interface is very strong in the explanation of the data types too</strong>. Each data type is progressively introduced, from Containers onwards, by stating the public interface a certain type needs to offer to the outside world to be worthy.</p>
+<p>This sounds like an elementary consideration (and maybe indeed it is), but nonetheless it is pretty interesting how this pattern is very consistent with the cornerstone pattern of POODR - which is about messages and interfaces.</p>
+<p>This is correlated to the implementation and, most importantly, to the testing.</p>
+<h4 id="Recursions-VS-Stacks"><a href="#Recursions-VS-Stacks" class="headerlink" title="Recursions VS Stacks"></a>Recursions VS Stacks</h4><p>The concept that a recursion can be solved with a stack and vice versa is one of those truths hidden in the eye of the sun, but the implications for are quite interesting. At the end of it, the computer will have its memory stack with allocated records for each recursion (so, basically, a stack..). </p>
+<p>So why not implementing the problem as a stack in the first place? </p>
+<p>The basic pattern for Stack implementation of a recursion requires:</p>
+<ol>
+<li>Create a Stack.</li>
+<li>Push the appropriate value in the Stack.</li>
+<li>Iteration over the values.<ul>
+<li>Termination condition.     </li>
+<li>Pop the value from Stack.</li>
+<li>Do something with the value</li>
+<li>Add node to the stack</li>
+</ul>
+</li>
+<li>Return the last pop</li>
+</ol>
+<p>See also this <a href="http://stackoverflow.com/questions/3391285/how-to-convert-a-recursive-function-to-use-a-stack" target="_blank" rel="external">Stack Overflow</a>.</p>
+<p>So, anyway, my basic implementation of a factorial calculation as a stack rather than recusrsion is as follows (it has been tested so HOPEFULLY it should be fine). Of course, all this is academic, but it still was fun.</p>
+<pre><code>class FactorialsTry
+    attr_accessor :num
+    def initialize num
+        @num = num
+    end
+
+    def factorial_recursive
+        factorial_rec(@num)
+    end
+
+    def factorial_stack
+        factorial_stk(@num)
+    end
+
+    private
+
+    def factorial_rec number
+        if number == 0
+            1
+        else
+            number*factorial_rec(number-1)
+        end
+    end
+
+
+    def factorial_stk number
+        stack = LinkedStack.new
+        stack.push(number)
+
+        (number-1).downto(1) do |num|
+            a = stack.pop
+            stack.push(a*num)
+        end
+        stack.pop
+    end
+end
+</code></pre></article><ul class="pager blog-pager"><li class="previous"><a href="/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 6 Inheritance (whys and hows)">← Previous Post</a></li><li class="next"><a href="/2014/04/07/poodr-chapter5-duck-typing/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 5 - Duck Typing">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

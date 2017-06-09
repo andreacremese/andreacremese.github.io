@@ -1,0 +1,74 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>First gulpfile for angular 2</h1><p class="post-meta">Posted on Sep 21 2016 · <a href="/tags/JS/" class="tag post-meta">JS</a> · <a href="/tags/typescript/" class="tag post-meta">typescript</a> · <a href="/tags/NG2/" class="tag post-meta">NG2</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>Angular 2 came out a few days ago and I am really excited be implementing on a Line of Business App. First stop was the very funny and entertaining <strong>tour of heroes</strong> tutorial but, as soon as that was done, I found myself “yearning” to start with the a pipeline to have NG2 operational in the dev team.</p>
+<p>First step is automate transpiling, copying and livereload, a musts for development. Also, I noticed that after a few components were added, the <code>app/</code> folder grew dramatically. </p>
+<p>After a bit of tinkering, I came up with a <code>gulpfile</code> that:</p>
+<ul>
+<li>Keeps the workspace clean (who wants <code>.js.map</code> and <code>.js</code> files in the way in a NG2 and typescript project??).</li>
+<li>Allows for livereload.</li>
+<li>Waits for the transpiling &amp; copying to the <code>bin/</code> folder before reloading (otherwise, the browser will miss files).</li>
+</ul>
+<pre><code>// fist gulp file for NG2 - am sure it will grow very substantially.
+const gulp = require(&#39;gulp&#39;);
+const del = require(&#39;del&#39;);
+const shell = require(&#39;gulp-shell&#39;);
+const server = require(&#39;gulp-server-livereload&#39;);
+const livereload = require(&#39;gulp-livereload&#39;);
+
+gulp.task(&#39;clean&#39;, function () {
+  return del(&#39;bin/**/*&#39;);
+});
+
+gulp.task(&#39;copyFiles&#39;, [&#39;transpile&#39;], function () {
+    gulp.src([&#39;app/**/*.html&#39;, &#39;app/**/*.css&#39;])
+    .pipe(gulp.dest(&#39;bin&#39;))
+    .pipe(livereload());
+})
+
+gulp.task(&#39;transpile&#39;, [&#39;clean&#39;], shell.task(&#39;tsc&#39;));
+
+gulp.task(&#39;livereload&#39;, [&#39;copyFiles&#39;], function() {
+  livereload.listen();
+  gulp.watch(&#39;app/*&#39;, [&#39;copyFiles&#39;]);
+});
+
+// this is the entry point
+gulp.task(&#39;webserver&#39;, [&#39;livereload&#39;], function() {
+  gulp.src(&#39;.&#39;)
+    .pipe(server({
+        livereload : true,
+        directoryListing: false,
+        open: true,
+        port: 8000,
+        fallback: &#39;index.html&#39;
+    }));
+});
+
+gulp.task(&#39;default&#39;,[&#39;webserver&#39;]);
+</code></pre><p>I have tried for a bit to use a gulp typescript and I decided for the time being to remain with tsc, so here’s the <code>tsconfig.json</code> file.</p>
+<pre><code>// matching tsconfig.json
+{
+  &quot;compilerOptions&quot;: {
+    &quot;target&quot;: &quot;es5&quot;,
+    &quot;module&quot;: &quot;commonjs&quot;,
+    &quot;moduleResolution&quot;: &quot;node&quot;,
+    &quot;sourceMap&quot;: true,
+    &quot;emitDecoratorMetadata&quot;: true,
+    &quot;experimentalDecorators&quot;: true,
+    &quot;removeComments&quot;: false,
+    &quot;noImplicitAny&quot;: false,
+    &quot;outDir&quot;: &quot;./bin&quot;
+  },
+  &quot;exclude&quot;: [
+    &quot;node_modules&quot;
+  ]
+}
+</code></pre></article><ul class="pager blog-pager"><li class="previous"><a href="/2016/09/26/Mongo-Sql-a-comparison/" data-toggle="tooltip" data-placement="top" title="Mongo  | Sql, a comparison">← Previous Post</a></li><li class="next"><a href="/2016/08/22/What-is-this/" data-toggle="tooltip" data-placement="top" title="What is -this- (in JS)?">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

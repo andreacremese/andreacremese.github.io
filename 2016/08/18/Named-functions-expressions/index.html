@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>The case for named functions expressions</h1><p class="post-meta">Posted on Aug 18 2016 · <a href="/tags/JS/" class="tag post-meta">JS</a> · <a href="/tags/Best-Practices/" class="tag post-meta">Best Practices</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>JS developers use function expression in a myriad of cases: from handlers to callbacks. In this brief article, inspired by <a href="https://twitter.com/getify" target="_blank" rel="external">@getify</a>, I advocate the use of <strong>namedfunction expression</strong>  in Lieu if just function expressions (anonymous function).</p>
+<p>As a refresher, inspired by <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function" target="_blank" rel="external">mozilla development network</a>:</p>
+<pre><code class="javascript">function log() {
+    console.log(&quot;I am a function declaration&quot;);
+}
+
+var fun = function () {
+    console.log(&quot;I am a function expression&quot;);
+};
+
+var fun2 = function fun2(){
+    console.log(&quot;I am a named function expression!&quot;)
+};
+</code></pre>
+<p>And just as a further refresher, function declaration are <strong>hoisted</strong>. Extremely briefly: Javascript code is analyzed before being executed and, during this passage, the bindings for the variables and functions declarations are created in the current scope (or the global scope, if you are not in <code>strict mode</code> and start assigning values to variables that are not yet declared).</p>
+<p>In the case of function declarations, the body of the function is as well hoisted, while for variables they initially are undefined. This makes function which are declared available for use before they are actually declared. Function expressions are treated like a variable, with a binding being created by having the undefined value. </p>
+<p>Also, declaration do not need a semicolon afterwards, while expressions should be followed by a semicolon. I know that this is not critical thanks to <a href="http://www.ecma-international.org/ecma-262/5.1/#sec-7.9" target="_blank" rel="external">automatic semicolon insertion</a>, but it is still worth mentioning - especially if you have a Linter on.</p>
+<h1 id="The-case-for-Named-Function-Expression"><a href="#The-case-for-Named-Function-Expression" class="headerlink" title="The case for Named Function Expression"></a>The case for Named Function Expression</h1><p>Now, using named function expressions seems a bit redundant. What seems to be wrong about just shoving an anonymous function in a variable? <strong>The reason to use named function expression is mainly to facilitate debugging.</strong></p>
+<p>When an unhandled exception is thrown by a function expression, the stack trace usually looks something like <code>VM224:2 Uncaught  ReferenceError: name is not defined (anonymous function) @ VM224:2</code>. In all effects, all we know is that there is an anonymous function that threw. Very helpful…</p>
+<p>Aggravating the situation, if the function / handler is buried deep into the code base, the stack trace at the exception may be half a dozen anonymous functions - making debugging a real treat. </p>
+<p>If the function is named, the error is much more meaningful. In addition, the code is more verbose and self documenting for our fellow developers. </p>
+<pre><code class="javascript">var user = {
+    name : &quot;Andrea&quot;
+};
+
+// function expression
+setTimeout(function () {
+    console.log(user.credentials.name);
+}, 1000);
+
+// will throw Uncaught TypeError: Cannot read property &#39;name&#39; of undefined (anonymous function) @ VM503:7
+
+
+// function expression
+setTimeout(function getUserName() {
+    console.log(user.credentials.name);
+}, 1000);
+
+// will instead throw a more useful exception with the name of the throwing function
+// VM504:3 Uncaught TypeError: Cannot read property &#39;name&#39; of undefined getUserName @ VM504:3
+
+
+
+//... for iifes too!
+(function someNewNameHere() {
+    throw new Error(&quot;Now you know when it throws!&quot;);
+}());
+
+// VM672:2 Uncaught Error: Now you know when it throws!(…)someNewNameHere @ VM672:2(anonymous function) @ VM672:3
+</code></pre>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2016/08/22/What-is-this/" data-toggle="tooltip" data-placement="top" title="What is -this- (in JS)?">← Previous Post</a></li><li class="next"><a href="/2016/08/16/tfs-or-git/" data-toggle="tooltip" data-placement="top" title="Tfs or git?">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

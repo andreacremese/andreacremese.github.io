@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>RabbitMQ basics</h1><p class="post-meta">Posted on Feb 9 2015 · <a href="/tags/SOA/" class="tag post-meta">SOA</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>The path for all the knowledge and wisdom in the universe is a very windy way, and it is letting me pass through Service Oriented Architecture. I am actualy quite glad of that =).</p>
+<p>Among the various services, platforms and tools I have studied in order to implement SOA for one of our clients there is RabbitMQ, the implementation of a memory queue by Pivotal Lab. Immagine and angry version of MSMQ, on steroids.</p>
+<p>I approached RabbitMQ right after having tried Azure service Bus Queues, which provide a lot of behavior as a service. RabbitMQ requires a bit more coding but its implementation is pretty cool, plus exposes the rabbitMQ server - which allows to drill into the nitty gritty of the host in a browser.</p>
+<h2 id="RabbitMQ-site-tutorials"><a href="#RabbitMQ-site-tutorials" class="headerlink" title="RabbitMQ (site) tutorials"></a>RabbitMQ (site) tutorials</h2><p>These <a href="https://github.com/AndreaHK5/RabbitMqTutorials" target="_blank" rel="external">folders on github</a> contain the examples / tutorials for Rabbit MQ (refer to <a href="http://www.rabbitmq.com/tutorials/tutorial-one-dotnet.html" target="_blank" rel="external">their site</a> for architecture and more documentation). Some comments are added - mainly for my personal benefit and future reference. All solutions run locally and in some cases the behavior might have been slightly modified from the one proposed in the Pivotal examples.</p>
+<p>I also added an extra folder with an exercise that mixes many aspects of SOA in RabbitMQ:</p>
+<ul>
+<li>Topics (implemented as exchanges in the RabbitMQ world).</li>
+<li>Binding the routing keys (note that Binding for RabbitMQ means something completely different than in the MS - WCF world).</li>
+<li>Use of “acknowledgments” receipts for “at-most-once” messaging.</li>
+<li>Durable queues (locally, but still resilient to shut down of the consumer).</li>
+<li>Name queues in lieu of self naming queues (used in the exchange samples). These allow the queue to be durable in case of crash for the subscriber.</li>
+<li>Pub/subs.</li>
+<li>Enforced round robin depending on the dimension of the messages rather than just on the order of arrival (which is the standard).</li>
+</ul>
+<h2 id="On-routing-keys"><a href="#On-routing-keys" class="headerlink" title="On routing keys"></a>On routing keys</h2><p>Refer to RabbitMQ’s site section at this <a href="https://www.rabbitmq.com/tutorials/tutorial-five-dotnet.html" target="_blank" rel="external">link</a>.</p>
+<h2 id="How-to-run-the-exercise"><a href="#How-to-run-the-exercise" class="headerlink" title="How to run the exercise"></a>How to run the exercise</h2><p>Compile the solution in the binaries.</p>
+<p>Make sure you have Erlang and RabbitMQ installed up and running - check <a href="localhost:15672" target="_blank" rel="external">localhost:15672</a> if in doubt).</p>
+<p>All commands are run via powershell / prompt (as in the examples in the Rabbit MQ site).</p>
+<h3 id="Register-the-consumers"><a href="#Register-the-consumers" class="headerlink" title="Register the consumers"></a>Register the consumers</h3><p>Register the listeners to create and bind the queues. Note that this implementation includes Feeds, but not Seed yet (old messages)</p>
+<pre><code>\Rabbit.Receiver\bin\Debug&gt; Rabbit.Receiver.exe alert.high alert.mid
+</code></pre><p>And state the name of the queue for this listener (this is in case the listener crashes and you want to pick it up later).</p>
+<pre><code>Enter queue name (RabbitMQ will create if does not exist)
+Alert1
+</code></pre><p>The queue Alert1 will be bound to the routing keys</p>
+<pre><code>subscribed to queue Alert1
+Alert1 now bound to alert.high
+Alert1 now bound to alert.mid
+consumer up and running, waiting for messages
+</code></pre><p>Now the queue Alert2 will subscribe to all alerts (in another shell):</p>
+<pre><code>\Rabbit.Receiver\bin\Debug&gt;Rabbit.Receiver.exe alert.*
+Enter queue name (RabbitMQ will create if does not exist)
+Alert2
+subscribed to queue Alert2
+Alert2 now bound to alert.*
+consumer up and running, waiting for messages
+</code></pre><h3 id="Send-messages"><a href="#Send-messages" class="headerlink" title="Send messages"></a>Send messages</h3><p>So now we send some messages to have a look. At first a specific message:</p>
+<pre><code>\Rabbit.Sender\bin\Debug&gt;Rabbit.Sender.exe alert.mid
+sent message Message : alert.mid
+</code></pre><p>Listener Alert1 will receive:</p>
+<pre><code>//Alert1
+consumer up and running, waiting for messages
+Received message Message : alert.mid
+</code></pre><p>And so will Alert2:</p>
+<pre><code>//Alert2
+consumer up and running, waiting for messages
+Received message Message : alert.mid
+</code></pre><p>We will now send a low alert. If everything is as it should be, Alert1 will not see it at all, but Alert 2 will.</p>
+<h3 id="Persistance"><a href="#Persistance" class="headerlink" title="Persistance"></a>Persistance</h3><p>Try to kill one of the consumers, send a few messages and then restart the listeners. =)</p>
+<h3 id="Contrast-with-Azure-Service-Bus-Queues-and-other-thoughts"><a href="#Contrast-with-Azure-Service-Bus-Queues-and-other-thoughts" class="headerlink" title="Contrast with Azure Service Bus Queues and other thoughts"></a>Contrast with Azure Service Bus Queues and other thoughts</h3><p>These basic examples for RabbitMQ implement two main roles: <strong>sender</strong> and <strong>receiver</strong>. As a result, there is a tighter than necessary dependence between the two. For example, the listeners (and their bindings) need to be instantiated before the sender.</p>
+<p>Future iteration will remove this constraint. Interesting to note that, out of the box, a competing service like Azure Service Bus Queues (AZSBQ) proposes a third role, directly embedded in the API, that of the <strong>manager</strong>. AZSBQ sender and receiver roles are typically not granted permission to instantiate queues, and manager is a separate app all together. </p>
+<p>Instead NServiceBus (at least in the first tutorials) delegates the instantiation of the queue to the consumer too.     </p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2015/03/22/run-visual-studio-in-parallels/" data-toggle="tooltip" data-placement="top" title="Connecting remotely to a Visual Studio solution running in a VM (say Parallels)">← Previous Post</a></li><li class="next"><a href="/2014/12/08/WCFservices/" data-toggle="tooltip" data-placement="top" title="WCF services - some take aways">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

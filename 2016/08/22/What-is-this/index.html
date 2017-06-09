@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>What is -this- (in JS)?</h1><p class="post-meta">Posted on Aug 22 2016 · <a href="/tags/JS/" class="tag post-meta">JS</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>In this brief article I’ll discuss on the subject of <code>this</code> in JS’s function execution context. There is quite a number of guides on this (very important) subject, but after some reading I decided it was worth putting down ‘my’ approach (see the disclaimer) to this subject. </p>
+<h1 id="So-what-is-this"><a href="#So-what-is-this" class="headerlink" title="So, what is this?"></a>So, what is this?</h1><blockquote>
+<p>Inside a function, the value of this depends on how the function is called (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" target="_blank" rel="external">MDN this</a>).</p>
+</blockquote>
+<p>The <strong>ordered</strong> list of rules I use to ascertain what <code>this</code> is bound to in a function’s execution context are below. </p>
+<p>I consider that <code>this</code>:</p>
+<ol>
+<li><strong>DEFAULTS</strong> to global or window (or it is undefined if in <code>strict mode</code>).<center><em>unless</em></center></li>
+<li>Is <strong>IMPLICITLY</strong> assigned to the object’s instance, if the function is an object’s method.<center><em>unless</em></center></li>
+<li>Is <strong>EXPLICITLY</strong> assigned in case the function has been called with a method like <code>.bind</code>, <code>.call</code> or <code>.apply</code><center><em>unless</em></center></li>
+<li>It is bound to a <strong>NEW</strong> object if the execution function is used as a constructor (in this case it is returned implicitly to the caller).</li>
+</ol>
+<p>Let’s look at them in detail.</p>
+<h1 id="1-Default"><a href="#1-Default" class="headerlink" title="1. Default"></a>1. Default</h1><p>Unelss any of the other cases below applies, in non strict mode <code>this</code> refers to the <code>Window</code> object in the browser, or to the <code>global</code> object in NodeJS. </p>
+<pre><code>function prova() {
+    this.name = &quot;andrea&quot;; 
+};
+
+prova();
+
+console.log(name) // -&gt; andrea
+</code></pre><p>In the example above the <code>name</code> variable ended up in the global scope’s <code>this</code>, as the window/global object is boxed and passed into the function whenever no value is explicitly specified to be bound for <code>this</code>.</p>
+<p>Exception to the rule above is if the script has turned JS into strict mode, specifying the <code>&#39;use strict&#39;</code>. In this case, <em>the value passed as <code>this</code> to a function in strict mode is not boxed and not forced into being an object at all, in fact it remains undefined</em>.</p>
+<pre><code>&quot;use strict&quot;;
+function prova() {
+    this.name = &quot;andrea&quot;; 
+};
+
+prova() // -&gt; Type Error - Cannot set property &#39;name&#39; of undefined
+
+// Because
+
+&#39;use strict&#39;
+function firstTry() {
+    return this;
+}
+
+firstTry() === undefined; // -&gt; true
+
+// Just to be sure - strict repeated for clarity as repetita juvant
+&#39;use strict&#39;
+function secondTry() {
+    console.log(this);
+}
+
+secondTry(); // -&gt; undefined
+</code></pre><p>This was introduced in  ECMA 5.1 in 2011, mainly due to security (prevent access to the window object, where confidential info may be stored) and performance issues (boxing and unboxing) <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode" target="_blank" rel="external">MDN Strict mode</a>. Note that using a function as a constructor will change this behaviour, as we will see later.</p>
+<h1 id="2-Implicit"><a href="#2-Implicit" class="headerlink" title="2. Implicit"></a>2. Implicit</h1><p>The binding of <code>this</code> is implicitly made to the object’s instance for methods.</p>
+<pre><code>var person = { 
+    name : &#39;Andrea&#39;,
+    greet: function (){
+        console.log(&quot;Hello I am &quot; + this.name)
+    }
+}
+person.greet() // -&gt; Hello I am Andrea
+</code></pre><p>Keep in mind that this will work with shorthand notation BUT will not worked the same with arrow functions, as the latter bind to the lexical scope they are ran into.</p>
+<pre><code>// shorthand version
+var person = { 
+    name : &#39;Andrea&#39;,
+    greet() {
+        console.log(&quot;Hello I am &quot; + this.name)
+    }
+}
+person.greet(); // -&gt; Hello I am Andrea
+
+// Arrow functions DON&#39;T BIND this to the object, hence you will get the binding to the global scope.
+var name = &#39;Enrico&#39;;
+var person = {
+    name : &#39;Andrea&#39;,
+    greet : () =&gt; { console.log(&quot;Hello I am &quot; + this.name);}
+} 
+
+person.greet() // -&gt; Hello I am Enrico
+</code></pre><h1 id="3-Explicitly"><a href="#3-Explicitly" class="headerlink" title="3. Explicitly"></a>3. Explicitly</h1><p>The <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="external"><code>.call</code></a> and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply" target="_blank" rel="external"><code>.apply</code></a> methods were introduced very early to the <code>Function.prototype</code> (with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/New_in_JavaScript/1.3" target="_blank" rel="external">JS 1.3 in 1998</a>), while the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="external"><code>.bind</code></a> method was introduced much later (in 2010 with <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/New_in_JavaScript/1.8.5" target="_blank" rel="external">JS 1.8.5</a>). </p>
+<p>These three methods provide a manner to bind <strong>explicitly</strong> the <code>this</code> keyword to an arbitrary object (or <code>undefined</code>, if needed). Note that they don’t all work in the same manner, as <code>.call</code> and <code>.apply</code> execute the function, while <code>.bind</code> simply provide the binding without execution, returning an exotic function object (basically, a function which can be then executed);</p>
+<pre><code>function some (arg) {
+    console.log(&quot;I am &quot; + this.name + &quot; and I was given &quot; + arg);
+}
+
+some.apply({name : &quot;Andrea&quot;}, [&quot;an ice cream&quot;]); // -&gt; I am Andrea and I was given an ice cream
+
+some.bind({name : &quot;Andrea&quot;})(&quot; cookies!!!&quot;); // -&gt; I am Andrea and I was given  cookies!!!
+</code></pre><p>Looking back at the implicit binding of <code>this</code>, we can see that explicit binding (for example using <code>.bind</code>) takes precedence.</p>
+<pre><code>function greet(){
+        console.log(&quot;Hello I am &quot; + this.name)
+}
+
+// with no .bind
+var person1 = { 
+    name : &#39;Antonio&#39;,
+    greet: greet
+}
+person1.greet(); // -&gt; Hello I am Antonio
+
+// with .bind
+var person = { 
+    name : &#39;Andrea&#39;,
+    greet: greet.bind({name : &#39;Enrico&#39;})
+}
+person.greet(); // -&gt; Hello I am Enrico
+</code></pre><h1 id="4-New-function-constructor"><a href="#4-New-function-constructor" class="headerlink" title="4. New (function constructor)"></a>4. New (function constructor)</h1><p>Every function in Javascript is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function" target="_blank" rel="external">constructor</a> and since <a href="http://www.ecma-international.org/ecma-262/6.0/#sec-new-operator" target="_blank" rel="external">ECMA 6 introduced it</a>, the <code>new</code> operator can be used with all functions. Whent a function is <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new" target="_blank" rel="external"><code>newed</code></a> the following three things happen in sequence: </p>
+<ol>
+<li>An object is created, and bound through the inheritance (prototype, more appropriately!) chain to the <code>prototype</code> of the function (which is another object).</li>
+<li>The function is run, with the <code>this</code> reference bound to the newly created object.</li>
+<li>Unless the function returns explicitly, the object created at point 1 and bound at point 2 is returned to the caller.</li>
+</ol>
+<p>So, lifted straight out of MDN’s examples:</p>
+<pre><code>function Person(name, age) {
+  // implicitly var this = {};
+  // implicitly, as sudo code, this.__proto__ = Person.prototype; 
+  this.name = name;
+  this.age = age;
+  // return this;
+}
+
+var me = new Person(&quot;andrea&quot;, 99);
+// Person implicitly returns the `this` that is created. 
+me.name; // -&gt; andrea
+</code></pre><h2 id="Disclaimer"><a href="#Disclaimer" class="headerlink" title="Disclaimer"></a>Disclaimer</h2><p>This post is an adaptation and cherry picking from <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" target="_blank" rel="external">MDN site</a> as well as <a href="https://www.pluralsight.com/courses/advanced-javascript" target="_blank" rel="external">Kyle Simpson’s excellent advanced JS course</a>, which I strongly suggest anyone to watch.</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2016/09/21/first-gulpfile-for-angular-2/" data-toggle="tooltip" data-placement="top" title="First gulpfile for angular 2">← Previous Post</a></li><li class="next"><a href="/2016/08/18/Named-functions-expressions/" data-toggle="tooltip" data-placement="top" title="The case for named functions expressions">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

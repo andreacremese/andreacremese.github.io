@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Mongo  | Sql, a comparison</h1><p class="post-meta">Posted on Sep 26 2016 · <a href="/tags/C/" class="tag post-meta">C#</a> · <a href="/tags/Entity-Framework/" class="tag post-meta">Entity Framework</a> · <a href="/tags/MongoDb/" class="tag post-meta">MongoDb</a> · <a href="/tags/SQL/" class="tag post-meta">SQL</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>One of the questions that often crops up at the outset of a greenfield project is if to choose Relational or Not Only Relational data persistance. In this article I will present a comparison of the two technologies concerning an actual (simplified) business case stemming from a Line of Business Application I am currently working on.</p>
+<p>The results thus far favour MongoDB, either in its C# or NodeJS implementation. The SQL implementation took 60 % longer to conclude the required query - refer to the results below. In terms of “bang for bucks” (speed VS lines of code) node’s result is truly amazing. </p>
+<p>This is a work in progress, but I wanted to share the results I gathered so far.</p>
+<h2 id="Exec-summary"><a href="#Exec-summary" class="headerlink" title="Exec summary"></a>Exec summary</h2><h3 id="Outline"><a href="#Outline" class="headerlink" title="Outline"></a>Outline</h3><p>This quick study contrasts three different implementations to resolve the same business problem: find all objects in a table related to a certain other entity. The sample case assumed is that <code>Reports *&lt;--------&gt;* Engineers</code> (see image below). The test query is basically “find all reports that have an engineer with a certain name”, assuming the engineer’s _id is not known.</p>
+<p><img src="/images/relationships.png" alt="Relationships"></p>
+<p>The three implementations under test were:</p>
+<ul>
+<li>Sql, C#, Entity Framework 6.1.</li>
+<li>MongoDB 3.3.4, C# MongoDriver</li>
+<li>MongoDB 3.3.4, Node MongoDriver.</li>
+</ul>
+<p>SQL and MongoDB cannot be readily compared in terms of performance, therefore the comparison is made in terms of the monthly cost in Azure. The same budget was allocated for SQL and MongoDB (~15 $/mo). </p>
+<p>The load testing was done with the <a href="https://www.npmjs.com/package/loadtest" target="_blank" rel="external">NPM load test tool</a>, assuming 4 concurrent queries, which is the forecasted load profile at the outset. 5000 Reports were seeded in the collection tested.</p>
+<h3 id="Results"><a href="#Results" class="headerlink" title="Results"></a>Results</h3><p>A preliminary analysis of the implementation proposed shows that the MongoDb implementation is faster than SQL in retrieving the required data, provided MongoDB &gt; 3.3.4 is used. NodeJS is slightly slower than the C# implementation, by a small margin.</p>
+<p><img src="/images/comparison.jpg" alt="Results"></p>
+<p>Interesting to note that with MongoDb =&lt; 3.3.4 the aggregation on two collections needs to <em>$unwind</em> the nested collection, therefore making the handling the results difficult (as they would require to be re aggergated). <a href="https://jira.mongodb.org/browse/SERVER-22881" target="_blank" rel="external">This was changed from 3.3.4 onwards</a>. The easiest solution using Mongo &lt; 3.3.4 was to lookup the connected collection for the relevant entry. This was tested and it performed much worse than any other implementation (SQL or Mongo).</p>
+<h2 id="Architecture-rundown"><a href="#Architecture-rundown" class="headerlink" title="Architecture rundown"></a>Architecture rundown</h2><p>Please refer to this <a href="https://github.com/andreacremese/mongosql" target="_blank" rel="external">github repo</a>. </p>
+<p>The two C# access layers (EF 6.1 and MongoDriver) share the same API RESTful project. The Node access layer is wrapped into an Express API. The C# access layer share the the solution with the POCOs (for EF) and the driver layers.</p>
+<p>The two API projects (C# and NodeJS) are deployed to two separate Azure App Services, with the same budget and in the same geographic location.</p>
+<p>The databases tested are:</p>
+<ul>
+<li>SQL database on Azure, S0 size . Cost at the time of writing:  15 $ / mo.</li>
+<li>MongoDB 3.3.4, deployed on an Standard A0 Virtual machine hosted in Azure, Ubuntu 16.04.  Cost at the time of writing : 13.39 $ / mo.</li>
+</ul>
+<h2 id="C-EF-implementation"><a href="#C-EF-implementation" class="headerlink" title="C# - EF implementation"></a>C# - EF implementation</h2><p>The POCOs are set up as follows:</p>
+<pre><code>public class Report {
+    public Report() {
+        Engineers = new List&lt;Engineer&gt;();
+    }
+    public Int32 Id { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public String Title { get; set; }
+    public ICollection&lt;Engineer&gt; Engineers { get; set; }
+    public Topic Topic { get; set; }
+    public Partner Partner { get; set; }
+}
+
+// ...
+
+public class Engineer {
+    public Int32 Id { get; set; }
+    [Index]
+    [MaxLength(40)]
+    public String Name { get; set; }
+    [Index]
+    [MaxLength(40)]
+    public String Email { get; set; }
+    public ICollection&lt;Report&gt; Reports { get; set; }
+}
+</code></pre><p>Note that engineer’s name and email are indexed (via EF). Please refer to the migrations generated for details.</p>
+<p>The C# RESTful service accesses the resource passing in the Linq query required. For example, this is the controller method to retrieve all reports with a certain engineer name:</p>
+<pre><code>[Route(&quot;reportsbyengineername&quot;)]
+[HttpGet]
+public HttpResponseMessage getReportsByEngineer(string engineerName) {
+    return Request.CreateResponse(HttpStatusCode.OK,
+        _repo.getReports(r =&gt; r.Engineers.Any(e =&gt; e.Name == engineerName))
+        .Select(rep =&gt; _mapper.mapReport(rep)));
+}
+</code></pre><p>The repo’s method is as follows:</p>
+<pre><code>public List&lt;Report&gt; getReports(Expression&lt;Func&lt;Report, bool&gt;&gt; lambda) {
+    using (var context = new dbpContext()) {
+        context.Configuration.ProxyCreationEnabled = false;
+        var linqQuery = context.Reports
+            .AsNoTracking()
+            .Include(rep =&gt; rep.Engineers)
+            .Include(rep =&gt; rep.Topic)
+            .Include(rep =&gt; rep.Partner)
+            .Where(lambda);
+        return linqQuery.ToList();
+    }
+}
+</code></pre><p>Note that the mapping in the controller (<code>.Select</code> Linq method) required in order to prevent a circular structure for the response. </p>
+<p>This architecture was chosen because it allows to pass in and compose queries in an additive fashion, for example:</p>
+<pre><code>[Route(&quot;reports&quot;)]
+[HttpGet]
+public HttpResponseMessage getReports(
+    String engineer = &quot;&quot;, 
+    String start = &quot;&quot;, 
+    String end=&quot;&quot;, 
+    String topic = &quot;&quot;,
+    String partner = &quot;&quot;,
+    String enginerId = &quot;&quot;,
+    String partnerId = &quot;&quot;,
+    String topicId = &quot;&quot;,
+    String engineerId = &quot;&quot;) {
+
+    var startDate = start == &quot;&quot; ? new DateTime(2014, 01, 01) : DateTime.Parse(start);
+    var endDate = end == &quot;&quot; ? DateTime.Now : DateTime.Parse(end);
+    Expression&lt;Func&lt;Report, bool&gt;&gt; expression = r =&gt; r.StartDate &lt; endDate &amp;&amp; r.EndDate &gt; startDate;
+
+    if (engineer != &quot;&quot;) {
+        expression = expression.And(r =&gt; r.Engineers.Any(e =&gt; e.Name.Contains(engineer) || e.Email.Contains(engineer)));
+    }
+
+    if (topic != &quot;&quot;) {
+        expression = expression.And(r =&gt; r.Topic.Name.Contains(topic));
+    }
+
+    if (partner != &quot;&quot;) {
+        expression = expression.And(r =&gt; r.Partner.Name.Contains(partner));
+    }
+
+    Int32 eId;
+    if (Int32.TryParse(engineerId, out eId)) {
+        expression = expression.And(r =&gt; r.Engineers.Any(e =&gt; e.Id == eId));
+    }
+
+    Int32 tId;
+    if (Int32.TryParse(topicId, out tId)) {
+        expression = expression.And(r =&gt; r.Topic.Id == tId);
+    }
+
+    Int32 pId;
+    if (Int32.TryParse(partnerId, out pId)) {
+        expression = expression.And(r =&gt; r.Partner.Id == pId);
+    }
+
+    return Request.CreateResponse(HttpStatusCode.OK, 
+        _repo.getReports(expression)
+        .Select(rep =&gt; _mapper.mapReport(rep)));
+}
+</code></pre><h3 id="C-MongoDriver-Implementation"><a href="#C-MongoDriver-Implementation" class="headerlink" title="C# - MongoDriver Implementation"></a>C# - MongoDriver Implementation</h3><p>For the time being the implementation in the <code>MongoDriver</code> is as follows, with the aggregation performed explicitly.</p>
+<pre><code>public async Task&lt;List&lt;BsonDocument&gt;&gt; GetReportsByPartnerName(String partnerName) {
+            var collection = _database.GetCollection&lt;MongoReport&gt;(_reportsCollection);
+            var aggregate = collection.Aggregate()
+                .Lookup(&quot;engineers&quot;, &quot;EngineerIds&quot;, &quot;_id&quot;, &quot;engineer_docs&quot;)
+                .Lookup(&quot;partners&quot;, &quot;PartnerId&quot;, &quot;_id&quot;, &quot;partner_doc&quot;)
+                .Match(new BsonDocument { { &quot;partner_doc.Name&quot;, partnerName } });
+            return await aggregate.ToListAsync();
+        }
+</code></pre><p><strong> Note that the aggregation above would not work on Mongo &lt; 3.3.4, because .aggregate requires to $unwind the embedded list, creating a duplicate of each report for each engineer connected.</strong></p>
+<p>As a side note, the Mongo implementation without the aggregation and with the manual lookups for the engineers have been tested with Mongo 3.2.9. Its performance was (much) slower than the aggregation version and slower than the EF SQL version. So, for many to many connection where the documents have to be kept in separate collections, don’t use lookups BUT use .aggregation!</p>
+<h3 id="Node-MongoDriver-Implementation"><a href="#Node-MongoDriver-Implementation" class="headerlink" title="Node - MongoDriver Implementation"></a>Node - MongoDriver Implementation</h3><p>This is very minimal, the whole <code>server.js</code> file is as follows.</p>
+<pre><code>var express = require(&#39;express&#39;);
+var app = express();
+var MongoClient = require(&#39;mongodb&#39;).MongoClient;
+var connectionString = process.env.mongoConectionString || require(&#39;./connectionString.js&#39;);
+
+app.get(&#39;/api/mongo/reportsbyengineername/:engName&#39;, function (req, res) {
+
+    var engName = req.params.engName;
+
+    MongoClient.connect(connectionString, function(err, db) {
+        if (err) {
+            console.log(err);
+            res.status(400).send(err);
+            return;
+        }
+        var collection = db.collection(&quot;reports&quot;);
+        collection.aggregate(
+        [
+            {$lookup : { from : &quot;engineers&quot;, localField : &quot;EngineerIds&quot;, foreignField : &quot;_id&quot;, as : &quot;engineer_docs&quot;}},
+            {$lookup : { from : &quot;partners&quot;, localField : &quot;PartnerId&quot;, foreignField : &quot;_id&quot;, as : &quot;partner_doc&quot;}},
+            {$match : {&quot;engineer_docs.Name&quot; : engName}},
+        ]).toArray(function (err, docs) {
+            res.send(docs);
+        })
+    });
+})
+
+app.get(&#39;/api/test&#39;, function (req, res) {
+    res.status(200).send(&quot;OK&quot;);
+} )
+
+
+var port = process.env.PORT || 3000;
+app.listen(port);
+</code></pre><h1 id="Results-1"><a href="#Results-1" class="headerlink" title="Results"></a>Results</h1><p><img src="/images/comparison.jpg" alt="Results"></p>
+<p>In terms of MongoDB, it is interesting to note that Node’s fastest queries were faster than the C# counterpart, with half of them complete 1/2 % faster, but the slowest were slower by some 6%.</p>
+<p>For this application and with this implementation, SQL was slower across the board, with the fastest 50% queries in SQL still slower than the residual 1% in MongoDB.</p>
+<h1 id="Future-developments"><a href="#Future-developments" class="headerlink" title="Future developments"></a>Future developments</h1><p>In the current implementation Mongo is deployed in a virtual machine, not as a service (for example, in MongLab). In order to provide a more fair comparison in terms of budget, a solution where Mongo (&gt; 3.3.4) can be deployed as a service will be required.</p>
+<p>The EF implementation is based off the excellent Pluralsight course <a href="https://www.pluralsight.com/courses/entity-framework-6-getting-started" target="_blank" rel="external">Getting Started with Entity Framework</a>. The EF implementation will need to be reviewed for potential improvements.</p>
+<p>The virtual machine where MongoDB is deployed to is in Central US (in order to use Classic VMs), while the Database is deployed in West US. As the tests are done in Seattle, this is an advantage for the relational solution. </p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/" data-toggle="tooltip" data-placement="top" title="Discovering Java 8: first notes">← Previous Post</a></li><li class="next"><a href="/2016/09/21/first-gulpfile-for-angular-2/" data-toggle="tooltip" data-placement="top" title="First gulpfile for angular 2">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

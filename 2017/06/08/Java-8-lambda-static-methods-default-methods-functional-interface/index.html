@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Discovering Java 8: first notes</h1><p class="post-meta">Posted on Jun 8 2017</p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><h1 id="Discovering-Java-8-first-notes"><a href="#Discovering-Java-8-first-notes" class="headerlink" title="Discovering Java 8: first notes"></a>Discovering Java 8: first notes</h1><p><strong>a.k.a. lambda, static methods, default methods, functional interface</strong></p>
+<p>I just landed on planet <strong>smartsheet</strong> (a very cool Saas), and the job change brought me to get from C# to Java. While the two are very similar, there are a few quirks and watch its. It seems that Java 8 (now released in old 2014) introduced a few new interesting features.</p>
+<p>This post (which may become a series of) can be really classified as my personal notes on some of the aspects that I found new, interesting or surprising. It is a mixin of Java specifics, Java 8 specifics, and some of the first watch its for the c# developer that is getting in Java world.</p>
+<p>A code snippet is added at the end of the post for future reference. </p>
+<h2 id="Static-methods-on-interfaces"><a href="#Static-methods-on-interfaces" class="headerlink" title="Static methods on interfaces"></a>Static methods on interfaces</h2><p>Java does not have static classes, unless the static class is nested in another class. This means that the following <strong>is not supported</strong> in Java:</p>
+<pre><code>public static class MyMixIn() {
+    public static Int double(Int32 i) {
+        return 2 * i;
+    }
+}
+
+/// consumer, somewhere else in code 
+    Int32 result = MyMixIn.double(3);
+</code></pre><p>Nonetheless, Java allows this pattern on <code>interfaces</code> see Static Methods in the <a href="https://docs.oracle.com/javase/tutorial/java/IandI/defaultmethods.html#static" target="_blank" rel="external">specs]</a>. Meaning, the following is perfectly valid:</p>
+<pre><code>public interface MyMixIn() {
+    public static Integer double(Integer i) {
+        return 2 * i;
+    }
+}
+
+/// consumer, somewhere else in code 
+    Integer result = MyMixIn.double(3);
+</code></pre><p>Note that the mix in is of type <code>interface</code>.</p>
+<h2 id="Default-methods-on-interfaces"><a href="#Default-methods-on-interfaces" class="headerlink" title="Default methods on interfaces"></a>Default methods on interfaces</h2><p>Another quirk that interfaces allow in Java is providing default implementation for the methods it specifies. This functionality is probably the most surprising to me, on the notion that an interface should not really have any implementation associated with it. </p>
+<p>Its seems like this was added to allow rewriting of some of the languages interfaces, without breaking the code that actually inherits from them (from the <a href="https://docs.oracle.com/javase/tutorial/java/IandI/defaultmethods.html" target="_blank" rel="external">specs</a>). This remains surprising to me, but the reason behind may be tied to the preventing breaking changes to existing interfaces. Java does allows for implementation of multiple interfaces, but single inheritance.</p>
+<p>Now, the default method only works when you instantiate an anonymous class newing up the interface (see below). If you do the following, the <strong>super</strong> will call the Parent class.</p>
+<pre><code>@FunctionalInterface
+public interface MyPredicate&lt;String&gt; {
+    boolean test(String t);
+
+    default boolean test(String t) {
+        return t.length() &gt; 4;
+    }
+}
+
+// Parent
+public class Parent {
+    public boolean test(String s) {
+        return s.length() &gt; 7;
+    }
+}
+
+// Child
+// note that both the Parent and the interface have an implementation of .test
+public class Child extends Parent implements MyPredicate&lt;String&gt; {
+    public boolean test(String s) {
+        return super.test(s);
+    }
+}
+
+// test
+@Test
+public void ensureParentInherits(){
+    // arrange
+    Child c = new Child();
+    // test
+    boolean result4 = c.test(&quot;1234&quot;);
+    boolean result8 = c.test(&quot;12345678&quot;);
+    // expecting parent to win
+    assertFalse(&quot;interface got implemented instead&quot;, result4);
+    assertTrue(&quot;interface got implemented instead&quot;, result8);
+}
+</code></pre><h2 id="Newing-up-interfaces-in-anonymous-classes"><a href="#Newing-up-interfaces-in-anonymous-classes" class="headerlink" title="Newing up interfaces in anonymous classes"></a>Newing up interfaces in anonymous classes</h2><p>Java has the concept of anonymous classes. An anonymous class is a class that is declared and instantiated at the same time (from the <a href="https://docs.oracle.com/javase/tutorial/java/javaOO/anonymousclasses.html" target="_blank" rel="external">specs</a>). This is usually implemented by “newing up an interface” (yes, you read it right):</p>
+<pre><code>    static void compareWithAnonymousClass(String[] strings) {
+
+        Comparator&lt;String&gt; comp = new Comparator&lt;String&gt;() {
+            public int compare(String s1, String s2) {
+                return Integer.compare(s1.length(), s2.length());
+            }
+        };
+        Arrays.sort(strings, comp);
+    }
+
+    // The signature of Compare is
+    public interface Comparator&lt;T&gt; {
+        //...
+    }
+</code></pre><p>At first this sounds confusing (newing up an interface?!?!?!?!?) and not very performant (it does smell like boxing and unboxing would come up the pike). Actually, when compiled, the anonymous class generates a separate class, therefore not having any performance hit. </p>
+<p>On the confusing side, this sounds like a piece of functionality that can get easily abused, but in the right hands may actually prevent the requirement to create return classes / DTOs / similar that would have a single use.</p>
+<h2 id="Functional-Interfaces-and-lambda-expressions"><a href="#Functional-Interfaces-and-lambda-expressions" class="headerlink" title="Functional Interfaces and lambda expressions"></a>Functional Interfaces and lambda expressions</h2><p>This sounds like the Java’s response to (very powerful) idea of <em>delegates</em> in c#. A functional interface is an interface with <strong>only one abstract method</strong> from the <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/FunctionalInterface.html" target="_blank" rel="external">specs</a>. As a result, when you new it up (see previous point), you can pass a single <strong>lambda expression</strong> as a method implementation, and the compiler knows that (by default) that is the method that is implemented.</p>
+<p>Meaning:</p>
+<pre><code>// MyPredicate.java
+// a personal implementation of Predicate
+@FunctionalInterface
+public interface MyPredicate&lt;T&gt; {
+    boolean test(T t);
+}
+
+//...
+
+// ConsumerWithAnonymousClass.java
+    MyPredicate&lt;String&gt; p1 = new MyPredicate&lt;String&gt;() {
+        public boolean test(String s) {
+            return s.length() &gt; 5;
+        }
+    };
+
+//...
+
+// Consumer with lambda
+    MyPredicate&lt;String&gt; p1 = str -&gt; str.length() &gt; lo;
+</code></pre><p>Note that the specification do require only one abstract method for an interface to qualify as a <strong>functional interface</strong>. Meaning, the interface can have default methods and / or static methods and still qualify as a functional interface (see the example at the end of the page.</p>
+<h2 id="Method-reference"><a href="#Method-reference" class="headerlink" title="Method reference"></a>Method reference</h2><p>This is a nifty shortcut which, at first, looks very confusing (especially with some experience in Ruby and Rails). This is a specific sintax to call a method in a class in a lambda expression (see <a href="https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html" target="_blank" rel="external">specs</a>).</p>
+<p>Meaning, the two following lines are absolutely equivalent:</p>
+<pre><code>
+// lambda with method call
+Function&lt;Person, Integer&gt; f = person -&gt; person.GetAge ();
+
+// method reference
+Function&lt;Person, Integer&gt; f = Person::GetAge ;
+</code></pre><h2 id="Wrapping-up"><a href="#Wrapping-up" class="headerlink" title="Wrapping up"></a>Wrapping up</h2><p>An example of a functional interface, with default AND static methods.</p>
+<pre><code>@FunctionalInterface
+public interface MyPredicate&lt;T&gt; {
+    boolean test(T t);
+
+    default MyPredicate&lt;T&gt; and(MyPredicate&lt;T&gt; other) {
+        return t -&gt; test(t) &amp;&amp; other.test(t);
+    }
+
+    default MyPredicate&lt;T&gt; or(MyPredicate&lt;T&gt; other) {
+        return t -&gt; test(t) || other.test(t);
+    }
+
+    // with a single type
+    static MyPredicate&lt;String&gt; isEqualString(String string) {
+        return s -&gt;  s.equals(s);
+    }
+
+    // with generics
+    static &lt;U&gt; MyPredicate&lt;U&gt; isEqual(U u) {
+        return s -&gt;  s.equals(u);
+    }
+}
+</code></pre><p>Example of the consumer of said interface:</p>
+<pre><code>    static Boolean lengthBetweenTwoIntergers(String s, Integer lo, Integer hi) {
+        // using anonymous class
+        MyPredicate&lt;String&gt; p1 = new MyPredicate&lt;String&gt;() {
+            public boolean test(String s) {
+                return s.length() &gt; lo;
+            }
+        };
+        // using only method in the functional interface 
+        MyPredicate&lt;String&gt; p2 = str -&gt; str.length() &lt; hi;
+        // using default method implementation
+        MyPredicate&lt;String&gt; p3 = p1.and(p2);
+        return p3.test(s);
+    }
+
+    // using a static method
+    public Boolean isEqualToOne(Integer i){
+        MyPredicate&lt;Integer&gt; p1 = MyPredicate.isEqual(1);
+        return i.test(1)
+    }
+</code></pre></article><ul class="pager blog-pager"><li class="next"><a href="/2016/09/26/Mongo-Sql-a-comparison/" data-toggle="tooltip" data-placement="top" title="Mongo  | Sql, a comparison">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

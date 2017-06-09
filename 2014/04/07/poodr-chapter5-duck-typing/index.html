@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>POODR - Notes from Chapter 5 - Duck Typing</h1><p class="post-meta">Posted on Apr 7 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>Chapter 5 of Practical Object Oriented Design in Ruby presents the basic principle of <strong>Duck Typing</strong>. This is one of the ways to implement OOD and keep down the cost of scaling your app.</p>
+<h3 id="The-absolute-basic"><a href="#The-absolute-basic" class="headerlink" title="The absolute basic"></a>The absolute basic</h3><p>Keep the interface constant and focus on the functionality that you need from the object you are calling. Structure the call in such a way that the message is “get_prepared_for_this”, rather than micromanage how this is achieved form the caller class.</p>
+<p>In this way, <strong>an object is really defined by its interface, rather then by its data</strong>.</p>
+<h3 id="Duck-typing-how-not-to-do-it"><a href="#Duck-typing-how-not-to-do-it" class="headerlink" title="Duck typing, how not to do it"></a>Duck typing, how not to do it</h3><p>If what I want from a Duck is to walk_like_a_duck, any object that implements a .walk_like_a_duck is a duck to me. </p>
+<p>So, in slightly more serious words, if I have a common interface the <em>sender</em> of the message does not need to know the specifics of the object that am I calling. Let’s delve into this by grades.</p>
+<p>In an atomic version, say that I want to move my animals. One implementation could be:</p>
+<pre><code>class MyFarm
+ attr_reader :duck, :cow, :dog, :leash, :cowbell
+ [...]
+     def exodus
+        duck.walk_like_duck
+        cow.walk_like_cow(cowbell)
+        dog.walk_like_dog(leash)
+    end
+end
+</code></pre><p>There are a few aspects of this code that give a clue about <strong>too much intertwining among classes</strong>. There are two main types of dependency in this type of coding:</p>
+<ul>
+<li>MyFarm knows exactly each and every action about the exodus, and know exactly what animals (and beyond) are moving, and how they are moving. Each animal that is added, exodus needs to be updated. </li>
+<li>MyFarm knows exactly the different interface and arguments in each and every animal. Which means, anything changes in those interfaces, MyFarm has to change.</li>
+</ul>
+<p>This looks very similar to sequential coding. Another slightly better version of this implements case switchers.</p>
+<pre><code>    class MyFarm
+     attr_reader :duck, :cow, :dog, :leash, :cowbell
+     [...]
+         def exodus(animals)
+            animals.each do |animal|
+            case animal
+            when Dog
+                animal.walk_like_dog(leash)
+            when Duck
+                animal.walk_like_duck
+            when Cow
+                animal.walk_like_cow(cowbell)
+            end
+        end
+    end
+</code></pre><p>This is still overly constrained and intertwined. Any change in rooster, additional animal and whatnot will cause huge disruption. Also note how MyFarm needs to know a lot about the animals.</p>
+<h3 id="Duck-typing-reason-1-a-common-interface-same-public-method"><a href="#Duck-typing-reason-1-a-common-interface-same-public-method" class="headerlink" title="Duck typing, reason #1 - a common interface: same public method"></a>Duck typing, reason #1 - a common interface: <em>same public method</em></h3><p>At the end of the day <strong>every animal (object) is called upon for one reason and one reason only</strong>, to walk. So the idea is for the calling class to use the <strong>same interface</strong>, exactly as every object is here for one reason only.</p>
+<pre><code>class MyFarm
+ attr_reader :duck, :cow, :dog, :leash, :cowbell
+ [...]
+     def exodus(exilers)
+         exilers.each {|exiler| 
+                         exiler.walk(arguments)}
+     end
+
+end    
+</code></pre><p>Note that, very loosely, the exilers now receive a generic arguments. This intermediate step is not really resolved, it merely serves as a spring board for the next paragraph. Please read on.</p>
+<h3 id="Duck-typing-reason-2-no-need-to-pass-arguments-across-passing-self"><a href="#Duck-typing-reason-2-no-need-to-pass-arguments-across-passing-self" class="headerlink" title="Duck typing, reason #2 - no need to pass arguments across: passing self"></a>Duck typing, reason #2 - no need to pass arguments across: passing <em>self</em></h3><p>The second aspect of duck typing, that I personally find a bit underplayed in the book narrative in comparison with its potential (or, to better define, what <em>I think</em> its potential is), is the fact that duck typing allows you to <strong>remove the need to pass arguments across</strong>. I personally think this is awesome.</p>
+<pre><code>class MyFarm
+ attr_reader :duck, :cow, :dog, :leash, :cowbell
+ [...]
+     def exodus(exilers)
+         exilers.each {|exiler| 
+                         exiler.walk(self)}
+     end
+
+end    
+</code></pre><p>By passing <em>self</em> to the exiler, the exiler now has access to all items in the caller instance of MyFarm. This provides an additional layer of security for the implementation. So, for example, the tongue in cheek implementation of the dog would be:</p>
+<pre><code>    class Dog
+
+        def walk(farm)
+            leash = farm.leash
+            walk_with_leash(leash)
+            [...] 
+        end
+
+        private
+
+        def walk_with_leash(leash)
+            [...]
+        end
+    end
+</code></pre><p>Note that farm does not need to pass the leash specifically, but pretty much the whole farm is passed.</p>
+<h3 id="Extending-the-Dog’s-behavior-example"><a href="#Extending-the-Dog’s-behavior-example" class="headerlink" title="Extending the Dog’s behavior example"></a>Extending the Dog’s behavior example</h3><p>Say that a new dog is taken on board in the farm, it is a Greyhound. If she is quite like my Greyhound, for half the year she needs a coat to walk outside.</p>
+<p>In the very first implementation this would have caused a lot of pain to add: both the sender and the receiver would have needed to be re implemented simply to pass on the coat. Also, I cannot have the Greyhound to walk with a coat in summer, so that if statement would have needed to be in the MyFarm (most likely), intertwining even more the methods.</p>
+<p>In the duck type implementation the sender does not change at all (as the interface does not change at all, beside giving an attr_reader to :dog_coat)</p>
+<pre><code>    class MyFarm
+     attr_reader :duck, :cow, :dog, :leash, :cowbell, :dog_coat
+     [...]
+         def exodus(exilers)
+             exilers.each {|exiler| 
+                             exiler.walk(self)}
+         end
+
+    end
+</code></pre><p>And now for the modified Dog class, that would allow the happy Greyhound to reach the end of the exodus without becoming a popsicle.</p>
+<pre><code>    class Dog
+
+        def walk(farm)
+            leash = farm.leash
+            walk_with_leash(leash)
+            if is_winter?
+                coat = farm.dog_coat
+                put_on_coat
+            end
+            [...] 
+        end
+
+        private
+
+        def walk_with_leash(leash)
+            [...]
+        end
+
+        def put_on_coat(coat)
+            [...]
+        end
+    end
+</code></pre><p>Note that the only changes are in the Dog class, in order to cater for the new requirement. Also, in an attempt at keeping the public interface as consistent as possible, the put_on_coat is a <em>private</em> method that the external world does not need to see.</p>
+<p><strong>At the end of the day, what you need from objects is to walk and participate to the exodus, how they do it is really their own business. An object is hence defined by its behavior - not by its data or content.</strong></p>
+<h3 id="Polymorphism"><a href="#Polymorphism" class="headerlink" title="Polymorphism"></a>Polymorphism</h3><p>This is the characteristic of a message to be able to accept many forms from a receiver. <em>poly</em> = many, <em>morphos</em> = forms. In the case above, .walk is the interface (or the message) and it has severely different meanings for each receiver. Hence, it is polymorphic.</p>
+<h3 id="A-word-of-caution"><a href="#A-word-of-caution" class="headerlink" title="A word of caution"></a>A word of caution</h3><p>Implementing Duck Typing requires some caution, as <strong>objects are defined by their interfaces</strong>, so we presume that each player plays fair. The sender has some blind trust in the receiver. </p>
+<p>It also makes the code a bit less immediate to understand, but much easier to service as we have seen with a very silly example (well, the Greyhound was happy to have the coat on).</p>
+<h3 id="TDD-as-interface-testing-and-documentation"><a href="#TDD-as-interface-testing-and-documentation" class="headerlink" title="TDD as interface testing - and documentation"></a>TDD as interface testing - and documentation</h3><p>An interesting aspect about Testing Driven Development and Duck Typing is the fact that Duck Typing really relies on interfaces. This basically means that </p>
+<ol>
+<li>Your testing should focus on public interfaces.</li>
+<li>Your testing will become in all effects a documentation for the public interfaces.</li>
+</ol>
+<h3 id="Scope-for-improvement"><a href="#Scope-for-improvement" class="headerlink" title="Scope for improvement"></a>Scope for improvement</h3><p>I have just realized that the next improvement could be not even say .walk to the exilers, but rather .to_exile. A parrot will most definitely fly, not walk (unless is the Norvegian Blue from the Monthy Python)…</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/04/08/recursion-and-stacks/" data-toggle="tooltip" data-placement="top" title="Recursion and stack">← Previous Post</a></li><li class="next"><a href="/2014/04/01/poodr-chapter-4/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 4">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

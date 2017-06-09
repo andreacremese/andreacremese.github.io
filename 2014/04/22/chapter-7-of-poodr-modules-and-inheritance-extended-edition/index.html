@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>POODR - Notes from Chapter 7 Modules (and Inheritance, extended edition)</h1><p class="post-meta">Posted on Apr 22 2014 · <a href="/tags/Ruby/" class="tag post-meta">Ruby</a> · <a href="/tags/Rails/" class="tag post-meta">Rails</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><p>Chapter 7 of <a href="http://www.poodr.com/" target="_blank" rel="external">Poodr</a> builds on top of the previous material on inheritance in <a href="http://andreahk5.github.io/blog/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/" target="_blank" rel="external">chapter 6</a>. This mainly as module and mix-ins has a very similar relationship with inheritance.</p>
+<p><strong>Modules are another method for automatic delegation</strong> (see also inheritance). Unlike inheritance, modules are used to share behavior between classes that do not have a common abstract type for behavior promotion.</p>
+<h3 id="Sharing-behavior-duck-typing"><a href="#Sharing-behavior-duck-typing" class="headerlink" title="Sharing behavior (duck typing)"></a>Sharing behavior (duck typing)</h3><p>Imagine that you have a number of classes that share a behavior, but they cannot be all specialization of an abstract class. In this case we will <strong>abstract the behavior by itself, rather than abstracting a class</strong>.  </p>
+<p>The idea is to group the methods required in common in a module, and include this module in all classes required.</p>
+<p>Use a verbose name for the module is also recommended, as this will be a container of behavior.</p>
+<pre><code>class Listened
+    def listened_lately?(listenable, time_frame)
+        puts &quot;the #{listenable.class} has been listened in the last #{time_frame}&quot;
+        false
+    end
+end
+
+module Listenable
+    attr_writer :listened
+
+    def listened
+        @listened ||= ::Listened.new
+        # this is the injection
+    end
+
+    def listened_lately?
+        listened.listened_lately(self,time_frame)
+    end
+
+    # this is the template method, include might override
+    def time_frame
+        &quot;7 days&quot;
+    end
+
+
+end
+
+class Audiobook
+    include Listenable
+
+    # This is the specialized method
+    def time_frame
+        &quot;30 days&quot;&quot;
+    end
+
+end
+
+class Podcast
+    include Listenable
+
+    # This is the specialized method
+    def time_frame
+        &quot;5 days&quot;&quot;
+    end
+
+end
+
+p = Podcast.new
+p.listened_lately?
+</code></pre><p>In this quick example:</p>
+<ul>
+<li>Audiobook and Podcast cannot be placed in an inheritance arrangement.</li>
+<li>The same pattern for <strong>template method</strong> introduced in inheritances is used for modules.</li>
+<li>All classes implement the module.</li>
+<li>If module sends a message, it must provide the template implementation (even if this is just an error).</li>
+</ul>
+<h3 id="Looking-methods-up-the-food-chain"><a href="#Looking-methods-up-the-food-chain" class="headerlink" title="Looking methods up the food chain"></a>Looking methods up the food chain</h3><p>When a method is called on a class, or an instance of a class, this is searched up the inheritance tree and the module tree. As soon as it is found, the search is interrupted (and that is why we use template methods).</p>
+<p>See below a brief explanation about the method research:</p>
+<ul>
+<li>First, the method is searched locally.</li>
+<li>Then it is searched in the Singleton class (methods defined for that instance only).</li>
+<li>After, it is searched in the modules included, starting form the last “included” (bottom in the class).</li>
+<li>Then, the superclass is invoked and searched.</li>
+</ul>
+<p>When multiple inheritances and modules are included, tracing this might become very complicated. Hence, the idea is to keep the inheritance pyramid as narrow as possible.</p>
+<h3 id="Abstraction-is-all-or-nothing"><a href="#Abstraction-is-all-or-nothing" class="headerlink" title="Abstraction is all or nothing"></a>Abstraction is all or nothing</h3><p>When implementing abstractions in modules (or superclasses) all of the <em>include</em> or of the subclasses must implement all of the abstraction. Pick and mix can create some serious issues.</p>
+<p>And, at the end of the day, what would be the point of having modules if you then cherry pick the behavior.</p>
+<h3 id="Liskov-substitution"><a href="#Liskov-substitution" class="headerlink" title="Liskov substitution"></a>Liskov substitution</h3><p>Each subclass must be a suitable substitution for the superclass.</p>
+<p>This means that taking q(x), being q a property and x and element of T, q(y) must be verified for y being and element of S, and S being a subtype of T.</p>
+<p>Note that the opposite is not required, meaning this is a one way street (specialization might add behavior).</p>
+</article><ul class="pager blog-pager"><li class="previous"><a href="/2014/05/04/chapter-8-composition/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter8 - Composition">← Previous Post</a></li><li class="next"><a href="/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/" data-toggle="tooltip" data-placement="top" title="POODR - Notes from Chapter 6 Inheritance (whys and hows)">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a><a href="/2016/08/18/Named-functions-expressions/"><h5 class="title">The case for named functions expressions</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>
