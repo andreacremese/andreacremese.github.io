@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://andreacremese.github.io/"/>
-  <updated>2017-06-09T04:28:50.000Z</updated>
+  <updated>2017-06-10T00:11:29.000Z</updated>
   <id>http://andreacremese.github.io/</id>
   
   <author>
@@ -20,12 +20,12 @@
     <link href="http://andreacremese.github.io/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"/>
     <id>http://andreacremese.github.io/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/</id>
     <published>2017-06-08T20:43:19.000Z</published>
-    <updated>2017-06-09T04:28:50.000Z</updated>
+    <updated>2017-06-10T00:11:29.000Z</updated>
     
     <content type="html"><![CDATA[<h1 id="Discovering-Java-8-first-notes"><a href="#Discovering-Java-8-first-notes" class="headerlink" title="Discovering Java 8: first notes"></a>Discovering Java 8: first notes</h1><p><strong>a.k.a. lambda, static methods, default methods, functional interface</strong></p>
-<p>I just landed on planet <strong>smartsheet</strong> (a very cool Saas), and the job change brought me to get from C# to Java. While the two are very similar, there are a few quirks and watch its. It seems that Java 8 (now released in old 2014) introduced a few new interesting features.</p>
-<p>This post (which may become a series of) can be really classified as my personal notes on some of the aspects that I found new, interesting or surprising. It is a mixin of Java specifics, Java 8 specifics, and some of the first watch its for the c# developer that is getting in Java world.</p>
-<p>A code snippet is added at the end of the post for future reference. </p>
+<p>I just joined <strong><a href="https://www.smartsheet.com/" target="_blank" rel="external">smartsheet</a></strong>, a Bellevue WA based Saas with a very interesting product and an amazing culture driven by some truly inspiring and inspired leadership. I am really enjoying the company, so hit me up in case you are interested in joining (I definitely <strong>cannot</strong> give away the code challenge in advance, in case you are wondering). </p>
+<p>The back end stack is in Java and so I am currently ramping up and transitioning from C# to Java. This post (which is very likely to become a series of posts) comprises some of my notes on some of the aspects that I found new, interesting or surprising after landing on planet Java. </p>
+<p> It is a mixin of Java specifics, Java 8 specifics, and some of the first watch its for the c# developer that is getting in Java world. A code snippet involving most of the concept that are reported is added at the end of the post for future reference. </p>
 <h2 id="Static-methods-on-interfaces"><a href="#Static-methods-on-interfaces" class="headerlink" title="Static methods on interfaces"></a>Static methods on interfaces</h2><p>Java does not have static classes, unless the static class is nested in another class. This means that the following <strong>is not supported</strong> in Java:</p>
 <pre><code>public static class MyMixIn() {
     public static Int double(Int32 i) {
@@ -191,13 +191,13 @@ public interface MyPredicate&lt;T&gt; {
     </summary>
     
     
-      <category term="Java" scheme="http://andreacremese.github.io/tags/Java/"/>
+      <category term="Transitioning to Java" scheme="http://andreacremese.github.io/tags/Transitioning-to-Java/"/>
     
-      <category term="lambda" scheme="http://andreacremese.github.io/tags/lambda/"/>
+      <category term="Lambda" scheme="http://andreacremese.github.io/tags/Lambda/"/>
     
-      <category term="static and default methods" scheme="http://andreacremese.github.io/tags/static-and-default-methods/"/>
+      <category term="Static and default methods" scheme="http://andreacremese.github.io/tags/Static-and-default-methods/"/>
     
-      <category term="functional interface" scheme="http://andreacremese.github.io/tags/functional-interface/"/>
+      <category term="Functional interfaces" scheme="http://andreacremese.github.io/tags/Functional-interfaces/"/>
     
   </entry>
   
