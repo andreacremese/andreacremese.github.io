@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://andreacremese.github.io/"/>
-  <updated>2017-06-14T00:53:03.000Z</updated>
+  <updated>2017-06-14T00:54:10.000Z</updated>
   <id>http://andreacremese.github.io/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://andreacremese.github.io/2017/06/13/streams-for-tests/"/>
     <id>http://andreacremese.github.io/2017/06/13/streams-for-tests/</id>
     <published>2017-06-14T00:33:46.000Z</published>
-    <updated>2017-06-14T00:53:03.000Z</updated>
+    <updated>2017-06-14T00:54:10.000Z</updated>
     
     <content type="html"><![CDATA[<h1 id="Streams"><a href="#Streams" class="headerlink" title="Streams"></a>Streams</h1><h2 id="Brief-Brackground"><a href="#Brief-Brackground" class="headerlink" title="Brief Brackground"></a>Brief Brackground</h2><p>One of the features I stumbled across in Java 8 is <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html" target="_blank" rel="external">Streams</a>. While streams exist in <code>c#</code>, they are usually employed for I/O operations (e.g. reading from files). The idea of stream is to provide a lightweight manner to iterate through “stuff”, without making a copy of that (that would bloat memory use and what have you). </p>
 <p>One of the classic uses is in Map-Reduce problem, keeping in mind two big caveats:</p>
@@ -50,7 +50,7 @@ private void TestSortedArrayWithStream(int[] arr) {
 <li><code>Integer.min</code> IS an associative operation.</li>
 <li>I am using the identity operator (<code>Integer.MIN_VALUE</code>) for the reduce.</li>
 </ol>
-<h2 id="Full-test-class"><a href="#Full-test-class" class="headerlink" title="Full test class"></a>Full test class</h2><p>Here’s the full class (implementation of <code>Bubble sort</code> omitted, also as I just needed something to play with the strean API in the first place).</p>
+<h2 id="Full-test-class"><a href="#Full-test-class" class="headerlink" title="Full test class"></a>Full test class</h2><p>Here’s the full class (implementation of <code>Bubble sort</code> omitted, also as I just needed something to play with the stream API in the first place).</p>
 <pre><code>public class PlayingWithStreamsAlgoTest {
 
         @Test
