@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"><meta name="author" content="Andrea Cremese"><link rel="icon" href="/favicon.jpg"><title>Andrea's Blog</title><meta name="description" content="Thoughts and notes about code"><link rel="alternate" type="application/rss+xml" title="Andrea's Blog" href="/atom.xml"><link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/highlight.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800">
+</head><body><nav class="navbar navbar-default navbar-fixed-top navbar-custom"><div class="container-fluid"><div class="navbar-header"><button type="button" data-toggle="collapse" data-target="#main-navbar" class="navbar-toggle"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a href="/" class="navbar-brand">Andrea's Blog</a></div><div id="main-navbar" class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right"><li class="hidden-xs"><a href="https://github.com/andreacremese" title="GitHub" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li class="hidden-xs"><a href="https://twitter.com/andreacremese" title="Twitter" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li class="hidden-xs"><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn" class="social hidden-xs"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li><li><a href="/pics">Pics</a></li><li><a href="/about">About</a></li></ul></div><div class="avatar-container"><div class="avatar-img-border"><a href="/"><img src="/favicon.jpg" class="avatar-img"></a></div></div></div></nav><header class="header-section"><div class="intro-header no-img"><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class="post-heading"><h1>Streams (for tests assertions)</h1><p class="post-meta">Posted on Jun 13 2017 · <a href="/tags/Java-8/" class="tag post-meta">Java 8</a> · <a href="/tags/Streams/" class="tag post-meta">Streams</a></p></div></div></div></div></div></header><div class="container"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><article role="main" class="blog-post"><h1 id="Streams"><a href="#Streams" class="headerlink" title="Streams"></a>Streams</h1><h2 id="Brief-Brackground"><a href="#Brief-Brackground" class="headerlink" title="Brief Brackground"></a>Brief Brackground</h2><p>One of the features I stumbled across in Java 8 is <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html" target="_blank" rel="external">Streams</a>. While streams exist in <code>c#</code>, they are usually employed for I/O operations (e.g. reading from files). The idea of stream is to provide a lightweight manner to iterate through “stuff”, without making a copy of that (that would bloat memory use and what have you). </p>
+<p>One of the classic uses is in Map-Reduce problem, keeping in mind two big caveats:</p>
+<ol>
+<li>Use an associative function for the reduce step. Associative meaning <code>f(a, f(b,c))) == f(a, b) c))</code>.</li>
+<li>Use the correct identity (e.g. <code>1</code> for multiplication and <code>0</code> for sum, or also <code>f(IDENTITY,a) == a</code>.</li>
+</ol>
+<p>This is especially important in case of parallelizzation, but that is outside today’s small scope.</p>
+<h2 id="Use-in-tests"><a href="#Use-in-tests" class="headerlink" title="Use in tests"></a>Use in tests</h2><p>I noticed a tendency When writing tests, especially when operating on arrays, to use <code>for</code> loops with nested assertion.<br>Meaning, use a convenience method like the following to test if the elements in an array are sorted:</p>
+<pre><code>private void TestSortedArray(int[] arr) {
+   for (int i = 0; i &lt; arr.length - 1; i++) {
+        if (arr[i] &gt; arr[i + 1]) {
+            Assert.assertFalse(&quot;array not sorted&quot;, true);
+        }
+    }
+}
+</code></pre><p>Now that is fine, but it is not that legible. Also, in other context, may force to store intermediate elements / copy the array in another structure. Enters the <code>stream</code> API in Java 8, where I can do things like:</p>
+<pre><code>// same method as before, but with the Stream API that Java 8 gave us
+private void TestSortedArrayWithStream(int[] arr) {
+    Arrays.stream(arr).reduce(Integer.MIN_VALUE, (min, elem) -&gt; {
+        Assert.assertTrue(&quot;array not sorted&quot;, elem &gt; min);
+        return Integer.min(min, elem);
+    });
+}
+</code></pre><p>Noting that:</p>
+<ol>
+<li><code>Integer.min</code> IS an associative operation.</li>
+<li>I am using the identity operator (<code>Integer.MIN_VALUE</code>) for the reduce.</li>
+</ol>
+<h2 id="Full-test-class"><a href="#Full-test-class" class="headerlink" title="Full test class"></a>Full test class</h2><p>Here’s the full class (implementation of <code>Bubble sort</code> omitted, also as I just needed something to play with the strean API in the first place).</p>
+<pre><code>public class PlayingWithStreamsAlgoTest {
+
+        @Test
+        public void canBubbleSortWhenInInverseOrderAndWithDuplicate() {
+            // arrange
+            int[] arr = { 3, 2, 1, 1 };
+            // act
+            Sorting.BubbleSort(arr);
+            // assert
+            TestSortedArray(arr);
+            TestContains(arr, new int[] { 3, 2, 1 });
+            // assert - with streams!
+            TestContainsWithStream(arr, new int[] { 3, 2, 1 });
+            TestSortedArrayWithStream(arr);
+
+        }
+
+        private void TestSortedArray(int[] arr) {
+            for (int i = 0; i &lt; arr.length - 1; i++) {
+                if (arr[i] &gt; arr[i + 1]) {
+                    Assert.assertFalse(&quot;array not sorted&quot;, true);
+                }
+            }
+        }
+
+        private void TestSortedArrayWithStream(int[] arr) {
+            Arrays.stream(arr).reduce(Integer.MIN_VALUE, (min, elem) -&gt; {
+                Assert.assertTrue(&quot;array not sorted&quot;, elem &gt; min);
+                return Integer.min(min, elem);
+            });
+        }
+
+
+
+        private void TestContains(int[] arr, int[] elems) {
+            HashSet&lt;Integer&gt; set = new HashSet&lt;Integer&gt;();
+            for(int e : elems) {
+                set.add(e);
+            }
+            for (int i = 0; i &lt; elems.length; i++) {
+                Assert.assertTrue(&quot;Extraneous element in sorted array&quot;,set.contains(arr[i]));
+            }
+        }
+
+        private void TestContainsWithStream(int[] arr, int[] elems) {
+            HashSet&lt;Integer&gt; set = new HashSet&lt;Integer&gt;();
+            for(int e : elems) {set.add(e);}
+            Arrays.stream(arr).forEach(e -&gt; Assert.assertTrue(&quot;Extraneous element in sorted array&quot;,set.contains(e)));
+        }
+}
+</code></pre></article><ul class="pager blog-pager"><li class="next"><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/" data-toggle="tooltip" data-placement="top" title="Discovering Java 8: first notes">Next Post →</a></li></ul></div><div class="col-lg-2 hidden-md most-recent"><h3>Most Recent</h3><a href="/2017/06/13/streams-for-tests/"><h5 class="title">Streams (for tests assertions)</h5></a><a href="/2017/06/08/Java-8-lambda-static-methods-default-methods-functional-interface/"><h5 class="title">Discovering Java 8: first notes</h5></a><a href="/2016/09/26/Mongo-Sql-a-comparison/"><h5 class="title">Mongo  | Sql, a comparison</h5></a><a href="/2016/09/21/first-gulpfile-for-angular-2/"><h5 class="title">First gulpfile for angular 2</h5></a><a href="/2016/08/22/What-is-this/"><h5 class="title">What is -this- (in JS)?</h5></a></div></div><div class="row"><div class="disqus-comments"><div class="comments"><div id="disqus_thread"></div></div></div><script>var url_parts = window.location.href.split("?");
+var disqus_url = url_parts[0];
+(function () {
+    console.log("enter disqus");
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = "//andreacremese.disqus.com/embed.js";
+    (document.head || d.body ).appendChild(dsq);
+})();</script></div></div><footer><div class="container beautiful-jekyll-footer"><div class="row"><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center footer-links"><li><a href="https://github.com/andreacremese" title="GitHub"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-github"></i></span></a></li><li><a href="https://twitter.com/andreacremese" title="Twitter"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-twitter"></i></span></a></li><li><a href="https://www.linkedin.com/in/andreacremese" title="LinkedIn"><span class="fa-stack fa-lg"><i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-stack-1x fa-inverse fa-linkedin"></i></span></a></li></ul><p class="copyright text-muted">© Andrea Cremese • 2017 <a href="mailto:undefined"></a></p></div></div></div></footer><script src="/js/jquery-1.11.2.min.js"></script><script src="/js/bootstrap.min.js"></script><script src="/js/main.js"></script><script src="/js/highlight.min.js"></script><script>hljs.initHighlightingOnLoad();</script></body></html>

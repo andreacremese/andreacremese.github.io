@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://andreacremese.github.io/"/>
-  <updated>2017-06-10T00:11:29.000Z</updated>
+  <updated>2017-06-14T00:53:03.000Z</updated>
   <id>http://andreacremese.github.io/</id>
   
   <author>
@@ -14,6 +14,107 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Streams (for tests assertions)</title>
+    <link href="http://andreacremese.github.io/2017/06/13/streams-for-tests/"/>
+    <id>http://andreacremese.github.io/2017/06/13/streams-for-tests/</id>
+    <published>2017-06-14T00:33:46.000Z</published>
+    <updated>2017-06-14T00:53:03.000Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="Streams"><a href="#Streams" class="headerlink" title="Streams"></a>Streams</h1><h2 id="Brief-Brackground"><a href="#Brief-Brackground" class="headerlink" title="Brief Brackground"></a>Brief Brackground</h2><p>One of the features I stumbled across in Java 8 is <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html" target="_blank" rel="external">Streams</a>. While streams exist in <code>c#</code>, they are usually employed for I/O operations (e.g. reading from files). The idea of stream is to provide a lightweight manner to iterate through “stuff”, without making a copy of that (that would bloat memory use and what have you). </p>
+<p>One of the classic uses is in Map-Reduce problem, keeping in mind two big caveats:</p>
+<ol>
+<li>Use an associative function for the reduce step. Associative meaning <code>f(a, f(b,c))) == f(a, b) c))</code>.</li>
+<li>Use the correct identity (e.g. <code>1</code> for multiplication and <code>0</code> for sum, or also <code>f(IDENTITY,a) == a</code>.</li>
+</ol>
+<p>This is especially important in case of parallelizzation, but that is outside today’s small scope.</p>
+<h2 id="Use-in-tests"><a href="#Use-in-tests" class="headerlink" title="Use in tests"></a>Use in tests</h2><p>I noticed a tendency When writing tests, especially when operating on arrays, to use <code>for</code> loops with nested assertion.<br>Meaning, use a convenience method like the following to test if the elements in an array are sorted:</p>
+<pre><code>private void TestSortedArray(int[] arr) {
+   for (int i = 0; i &lt; arr.length - 1; i++) {
+        if (arr[i] &gt; arr[i + 1]) {
+            Assert.assertFalse(&quot;array not sorted&quot;, true);
+        }
+    }
+}
+</code></pre><p>Now that is fine, but it is not that legible. Also, in other context, may force to store intermediate elements / copy the array in another structure. Enters the <code>stream</code> API in Java 8, where I can do things like:</p>
+<pre><code>// same method as before, but with the Stream API that Java 8 gave us
+private void TestSortedArrayWithStream(int[] arr) {
+    Arrays.stream(arr).reduce(Integer.MIN_VALUE, (min, elem) -&gt; {
+        Assert.assertTrue(&quot;array not sorted&quot;, elem &gt; min);
+        return Integer.min(min, elem);
+    });
+}
+</code></pre><p>Noting that:</p>
+<ol>
+<li><code>Integer.min</code> IS an associative operation.</li>
+<li>I am using the identity operator (<code>Integer.MIN_VALUE</code>) for the reduce.</li>
+</ol>
+<h2 id="Full-test-class"><a href="#Full-test-class" class="headerlink" title="Full test class"></a>Full test class</h2><p>Here’s the full class (implementation of <code>Bubble sort</code> omitted, also as I just needed something to play with the strean API in the first place).</p>
+<pre><code>public class PlayingWithStreamsAlgoTest {
+
+        @Test
+        public void canBubbleSortWhenInInverseOrderAndWithDuplicate() {
+            // arrange
+            int[] arr = { 3, 2, 1, 1 };
+            // act
+            Sorting.BubbleSort(arr);
+            // assert
+            TestSortedArray(arr);
+            TestContains(arr, new int[] { 3, 2, 1 });
+            // assert - with streams!
+            TestContainsWithStream(arr, new int[] { 3, 2, 1 });
+            TestSortedArrayWithStream(arr);
+
+        }
+
+        private void TestSortedArray(int[] arr) {
+            for (int i = 0; i &lt; arr.length - 1; i++) {
+                if (arr[i] &gt; arr[i + 1]) {
+                    Assert.assertFalse(&quot;array not sorted&quot;, true);
+                }
+            }
+        }
+
+        private void TestSortedArrayWithStream(int[] arr) {
+            Arrays.stream(arr).reduce(Integer.MIN_VALUE, (min, elem) -&gt; {
+                Assert.assertTrue(&quot;array not sorted&quot;, elem &gt; min);
+                return Integer.min(min, elem);
+            });
+        }
+
+
+
+        private void TestContains(int[] arr, int[] elems) {
+            HashSet&lt;Integer&gt; set = new HashSet&lt;Integer&gt;();
+            for(int e : elems) {
+                set.add(e);
+            }
+            for (int i = 0; i &lt; elems.length; i++) {
+                Assert.assertTrue(&quot;Extraneous element in sorted array&quot;,set.contains(arr[i]));
+            }
+        }
+
+        private void TestContainsWithStream(int[] arr, int[] elems) {
+            HashSet&lt;Integer&gt; set = new HashSet&lt;Integer&gt;();
+            for(int e : elems) {set.add(e);}
+            Arrays.stream(arr).forEach(e -&gt; Assert.assertTrue(&quot;Extraneous element in sorted array&quot;,set.contains(e)));
+        }
+}
+</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;Streams&quot;&gt;&lt;a href=&quot;#Streams&quot; class=&quot;headerlink&quot; title=&quot;Streams&quot;&gt;&lt;/a&gt;Streams&lt;/h1&gt;&lt;h2 id=&quot;Brief-Brackground&quot;&gt;&lt;a href=&quot;#Brief-Brackgroun
+    
+    </summary>
+    
+    
+      <category term="Java 8" scheme="http://andreacremese.github.io/tags/Java-8/"/>
+    
+      <category term="Streams" scheme="http://andreacremese.github.io/tags/Streams/"/>
+    
+  </entry>
   
   <entry>
     <title>Discovering Java 8: first notes</title>
@@ -206,7 +307,7 @@ public interface MyPredicate&lt;T&gt; {
     <link href="http://andreacremese.github.io/2016/09/26/Mongo-Sql-a-comparison/"/>
     <id>http://andreacremese.github.io/2016/09/26/Mongo-Sql-a-comparison/</id>
     <published>2016-09-26T17:44:35.000Z</published>
-    <updated>2017-06-09T00:27:40.000Z</updated>
+    <updated>2017-06-09T00:33:06.000Z</updated>
     
     <content type="html"><![CDATA[<p>One of the questions that often crops up at the outset of a greenfield project is if to choose Relational or Not Only Relational data persistance. In this article I will present a comparison of the two technologies concerning an actual (simplified) business case stemming from a Line of Business Application I am currently working on.</p>
 <p>The results thus far favour MongoDB, either in its C# or NodeJS implementation. The SQL implementation took 60 % longer to conclude the required query - refer to the results below. In terms of “bang for bucks” (speed VS lines of code) node’s result is truly amazing. </p>
@@ -2201,148 +2302,6 @@ end
       <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
     
       <category term="DSA" scheme="http://andreacremese.github.io/tags/DSA/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>POODR - Notes from Chapter 5 - Duck Typing</title>
-    <link href="http://andreacremese.github.io/2014/04/07/poodr-chapter5-duck-typing/"/>
-    <id>http://andreacremese.github.io/2014/04/07/poodr-chapter5-duck-typing/</id>
-    <published>2014-04-08T04:50:00.000Z</published>
-    <updated>2017-06-08T18:56:08.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>Chapter 5 of Practical Object Oriented Design in Ruby presents the basic principle of <strong>Duck Typing</strong>. This is one of the ways to implement OOD and keep down the cost of scaling your app.</p>
-<h3 id="The-absolute-basic"><a href="#The-absolute-basic" class="headerlink" title="The absolute basic"></a>The absolute basic</h3><p>Keep the interface constant and focus on the functionality that you need from the object you are calling. Structure the call in such a way that the message is “get_prepared_for_this”, rather than micromanage how this is achieved form the caller class.</p>
-<p>In this way, <strong>an object is really defined by its interface, rather then by its data</strong>.</p>
-<h3 id="Duck-typing-how-not-to-do-it"><a href="#Duck-typing-how-not-to-do-it" class="headerlink" title="Duck typing, how not to do it"></a>Duck typing, how not to do it</h3><p>If what I want from a Duck is to walk_like_a_duck, any object that implements a .walk_like_a_duck is a duck to me. </p>
-<p>So, in slightly more serious words, if I have a common interface the <em>sender</em> of the message does not need to know the specifics of the object that am I calling. Let’s delve into this by grades.</p>
-<p>In an atomic version, say that I want to move my animals. One implementation could be:</p>
-<pre><code>class MyFarm
- attr_reader :duck, :cow, :dog, :leash, :cowbell
- [...]
-     def exodus
-        duck.walk_like_duck
-        cow.walk_like_cow(cowbell)
-        dog.walk_like_dog(leash)
-    end
-end
-</code></pre><p>There are a few aspects of this code that give a clue about <strong>too much intertwining among classes</strong>. There are two main types of dependency in this type of coding:</p>
-<ul>
-<li>MyFarm knows exactly each and every action about the exodus, and know exactly what animals (and beyond) are moving, and how they are moving. Each animal that is added, exodus needs to be updated. </li>
-<li>MyFarm knows exactly the different interface and arguments in each and every animal. Which means, anything changes in those interfaces, MyFarm has to change.</li>
-</ul>
-<p>This looks very similar to sequential coding. Another slightly better version of this implements case switchers.</p>
-<pre><code>    class MyFarm
-     attr_reader :duck, :cow, :dog, :leash, :cowbell
-     [...]
-         def exodus(animals)
-            animals.each do |animal|
-            case animal
-            when Dog
-                animal.walk_like_dog(leash)
-            when Duck
-                animal.walk_like_duck
-            when Cow
-                animal.walk_like_cow(cowbell)
-            end
-        end
-    end
-</code></pre><p>This is still overly constrained and intertwined. Any change in rooster, additional animal and whatnot will cause huge disruption. Also note how MyFarm needs to know a lot about the animals.</p>
-<h3 id="Duck-typing-reason-1-a-common-interface-same-public-method"><a href="#Duck-typing-reason-1-a-common-interface-same-public-method" class="headerlink" title="Duck typing, reason #1 - a common interface: same public method"></a>Duck typing, reason #1 - a common interface: <em>same public method</em></h3><p>At the end of the day <strong>every animal (object) is called upon for one reason and one reason only</strong>, to walk. So the idea is for the calling class to use the <strong>same interface</strong>, exactly as every object is here for one reason only.</p>
-<pre><code>class MyFarm
- attr_reader :duck, :cow, :dog, :leash, :cowbell
- [...]
-     def exodus(exilers)
-         exilers.each {|exiler| 
-                         exiler.walk(arguments)}
-     end
-
-end    
-</code></pre><p>Note that, very loosely, the exilers now receive a generic arguments. This intermediate step is not really resolved, it merely serves as a spring board for the next paragraph. Please read on.</p>
-<h3 id="Duck-typing-reason-2-no-need-to-pass-arguments-across-passing-self"><a href="#Duck-typing-reason-2-no-need-to-pass-arguments-across-passing-self" class="headerlink" title="Duck typing, reason #2 - no need to pass arguments across: passing self"></a>Duck typing, reason #2 - no need to pass arguments across: passing <em>self</em></h3><p>The second aspect of duck typing, that I personally find a bit underplayed in the book narrative in comparison with its potential (or, to better define, what <em>I think</em> its potential is), is the fact that duck typing allows you to <strong>remove the need to pass arguments across</strong>. I personally think this is awesome.</p>
-<pre><code>class MyFarm
- attr_reader :duck, :cow, :dog, :leash, :cowbell
- [...]
-     def exodus(exilers)
-         exilers.each {|exiler| 
-                         exiler.walk(self)}
-     end
-
-end    
-</code></pre><p>By passing <em>self</em> to the exiler, the exiler now has access to all items in the caller instance of MyFarm. This provides an additional layer of security for the implementation. So, for example, the tongue in cheek implementation of the dog would be:</p>
-<pre><code>    class Dog
-
-        def walk(farm)
-            leash = farm.leash
-            walk_with_leash(leash)
-            [...] 
-        end
-
-        private
-
-        def walk_with_leash(leash)
-            [...]
-        end
-    end
-</code></pre><p>Note that farm does not need to pass the leash specifically, but pretty much the whole farm is passed.</p>
-<h3 id="Extending-the-Dog’s-behavior-example"><a href="#Extending-the-Dog’s-behavior-example" class="headerlink" title="Extending the Dog’s behavior example"></a>Extending the Dog’s behavior example</h3><p>Say that a new dog is taken on board in the farm, it is a Greyhound. If she is quite like my Greyhound, for half the year she needs a coat to walk outside.</p>
-<p>In the very first implementation this would have caused a lot of pain to add: both the sender and the receiver would have needed to be re implemented simply to pass on the coat. Also, I cannot have the Greyhound to walk with a coat in summer, so that if statement would have needed to be in the MyFarm (most likely), intertwining even more the methods.</p>
-<p>In the duck type implementation the sender does not change at all (as the interface does not change at all, beside giving an attr_reader to :dog_coat)</p>
-<pre><code>    class MyFarm
-     attr_reader :duck, :cow, :dog, :leash, :cowbell, :dog_coat
-     [...]
-         def exodus(exilers)
-             exilers.each {|exiler| 
-                             exiler.walk(self)}
-         end
-
-    end
-</code></pre><p>And now for the modified Dog class, that would allow the happy Greyhound to reach the end of the exodus without becoming a popsicle.</p>
-<pre><code>    class Dog
-
-        def walk(farm)
-            leash = farm.leash
-            walk_with_leash(leash)
-            if is_winter?
-                coat = farm.dog_coat
-                put_on_coat
-            end
-            [...] 
-        end
-
-        private
-
-        def walk_with_leash(leash)
-            [...]
-        end
-
-        def put_on_coat(coat)
-            [...]
-        end
-    end
-</code></pre><p>Note that the only changes are in the Dog class, in order to cater for the new requirement. Also, in an attempt at keeping the public interface as consistent as possible, the put_on_coat is a <em>private</em> method that the external world does not need to see.</p>
-<p><strong>At the end of the day, what you need from objects is to walk and participate to the exodus, how they do it is really their own business. An object is hence defined by its behavior - not by its data or content.</strong></p>
-<h3 id="Polymorphism"><a href="#Polymorphism" class="headerlink" title="Polymorphism"></a>Polymorphism</h3><p>This is the characteristic of a message to be able to accept many forms from a receiver. <em>poly</em> = many, <em>morphos</em> = forms. In the case above, .walk is the interface (or the message) and it has severely different meanings for each receiver. Hence, it is polymorphic.</p>
-<h3 id="A-word-of-caution"><a href="#A-word-of-caution" class="headerlink" title="A word of caution"></a>A word of caution</h3><p>Implementing Duck Typing requires some caution, as <strong>objects are defined by their interfaces</strong>, so we presume that each player plays fair. The sender has some blind trust in the receiver. </p>
-<p>It also makes the code a bit less immediate to understand, but much easier to service as we have seen with a very silly example (well, the Greyhound was happy to have the coat on).</p>
-<h3 id="TDD-as-interface-testing-and-documentation"><a href="#TDD-as-interface-testing-and-documentation" class="headerlink" title="TDD as interface testing - and documentation"></a>TDD as interface testing - and documentation</h3><p>An interesting aspect about Testing Driven Development and Duck Typing is the fact that Duck Typing really relies on interfaces. This basically means that </p>
-<ol>
-<li>Your testing should focus on public interfaces.</li>
-<li>Your testing will become in all effects a documentation for the public interfaces.</li>
-</ol>
-<h3 id="Scope-for-improvement"><a href="#Scope-for-improvement" class="headerlink" title="Scope for improvement"></a>Scope for improvement</h3><p>I have just realized that the next improvement could be not even say .walk to the exilers, but rather .to_exile. A parrot will most definitely fly, not walk (unless is the Norvegian Blue from the Monthy Python)…</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;Chapter 5 of Practical Object Oriented Design in Ruby presents the basic principle of &lt;strong&gt;Duck Typing&lt;/strong&gt;. This is one of the wa
-    
-    </summary>
-    
-    
-      <category term="Ruby" scheme="http://andreacremese.github.io/tags/Ruby/"/>
-    
-      <category term="Rails" scheme="http://andreacremese.github.io/tags/Rails/"/>
     
   </entry>
   
