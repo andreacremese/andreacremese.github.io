@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://andreacremese.github.io/ENG-SAAS/index.html</loc>
+    
+    <lastmod>2017-06-14T02:14:24.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://andreacremese.github.io/2017/06/13/streams-for-tests/</loc>
     
     <lastmod>2017-06-14T00:54:10.000Z</lastmod>
@@ -23,14 +30,14 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2016/09/26/Mongo-Sql-a-comparison/</loc>
+    <loc>http://andreacremese.github.io/images/index.html</loc>
     
     <lastmod>2017-06-09T00:33:06.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/images/index.html</loc>
+    <loc>http://andreacremese.github.io/2016/09/26/Mongo-Sql-a-comparison/</loc>
     
     <lastmod>2017-06-09T00:33:06.000Z</lastmod>
     
@@ -51,14 +58,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/02/15/Multiple-associations-between-models/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2014/05/17/association-aggregation-and-composition-and-chapter-8-of-the-poodr/</loc>
+    <loc>http://andreacremese.github.io/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -72,7 +72,21 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/01/02/Strong-params-for-hashes/</loc>
+    <loc>http://andreacremese.github.io/2014/12/08/WCFservices/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2016/08/22/What-is-this/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2014/05/17/association-aggregation-and-composition-and-chapter-8-of-the-poodr/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -93,7 +107,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/12/08/WCFservices/</loc>
+    <loc>http://andreacremese.github.io/2014/05/04/chapter-8-composition/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -114,21 +128,14 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2016/08/22/What-is-this/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2014/05/04/chapter-8-composition/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://andreacremese.github.io/2014/01/11/Case-insensitive-search/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2014/03/23/lessons-from-a-won-hackaton/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -149,21 +156,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2015/05/07/Mocks-with-node-plus-express/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2014/03/26/poodr-notes-from-chapter-1/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2015/02/09/rabbitmq-basics/</loc>
+    <loc>http://andreacremese.github.io/2014/01/02/Strong-params-for-hashes/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -177,7 +170,14 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/04/12/poodr-chapter-6-inheritance-whys-and-hows/</loc>
+    <loc>http://andreacremese.github.io/2015/02/09/rabbitmq-basics/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2014/03/26/poodr-notes-from-chapter-1/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -185,6 +185,13 @@
   
   <url>
     <loc>http://andreacremese.github.io/2013/12/23/rails-search-in-your-has-many-thorugh-database-in-a-single-line-part-II-sanitation+scope-method-implementation/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2013/12/21/rails-search-in-your-has-many-thorugh-database-in-a-single-line/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -205,14 +212,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2013/12/21/rails-search-in-your-has-many-thorugh-database-in-a-single-line/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2014/09/04/web-workers/</loc>
+    <loc>http://andreacremese.github.io/2014/03/27/Notes-on-chapter-2/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -226,7 +226,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2016/08/02/Arrow-functions-and-this/</loc>
+    <loc>http://andreacremese.github.io/2014/09/04/web-workers/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -240,14 +240,21 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/03/27/Notes-on-chapter-2/</loc>
+    <loc>http://andreacremese.github.io/2014/02/15/Multiple-associations-between-models/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/03/23/lessons-from-a-won-hackaton/</loc>
+    <loc>http://andreacremese.github.io/2015/05/07/Mocks-with-node-plus-express/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2016/08/02/Arrow-functions-and-this/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
