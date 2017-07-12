@@ -4,7 +4,7 @@
   <url>
     <loc>http://andreacremese.github.io/ENG-SAAS/index.html</loc>
     
-    <lastmod>2017-06-14T23:40:44.000Z</lastmod>
+    <lastmod>2017-07-12T23:52:44.000Z</lastmod>
     
   </url>
   
@@ -65,7 +65,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/03/06/Session-issue-in-rails-controller-test/</loc>
+    <loc>http://andreacremese.github.io/2014/01/02/Strong-params-for-hashes/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -73,13 +73,6 @@
   
   <url>
     <loc>http://andreacremese.github.io/2014/12/08/WCFservices/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://andreacremese.github.io/2016/08/22/What-is-this/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -100,14 +93,21 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/</loc>
+    <loc>http://andreacremese.github.io/2014/05/04/chapter-8-composition/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/05/04/chapter-8-composition/</loc>
+    <loc>http://andreacremese.github.io/2016/08/22/What-is-this/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2014/04/22/chapter-7-of-poodr-modules-and-inheritance-extended-edition/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -142,13 +142,6 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/03/27/poodr-chapter-3/</loc>
-    
-    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://andreacremese.github.io/2014/04/01/poodr-chapter-4/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
@@ -156,7 +149,14 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/01/02/Strong-params-for-hashes/</loc>
+    <loc>http://andreacremese.github.io/2014/03/27/poodr-chapter-3/</loc>
+    
+    <lastmod>2017-06-08T18:56:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://andreacremese.github.io/2014/03/27/Notes-on-chapter-2/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -170,14 +170,14 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2015/02/09/rabbitmq-basics/</loc>
+    <loc>http://andreacremese.github.io/2014/03/26/poodr-notes-from-chapter-1/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/03/26/poodr-notes-from-chapter-1/</loc>
+    <loc>http://andreacremese.github.io/2015/02/09/rabbitmq-basics/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -212,7 +212,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/03/27/Notes-on-chapter-2/</loc>
+    <loc>http://andreacremese.github.io/2014/09/04/web-workers/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
@@ -226,7 +226,7 @@
   </url>
   
   <url>
-    <loc>http://andreacremese.github.io/2014/09/04/web-workers/</loc>
+    <loc>http://andreacremese.github.io/2014/03/06/Session-issue-in-rails-controller-test/</loc>
     
     <lastmod>2017-06-08T18:56:08.000Z</lastmod>
     
