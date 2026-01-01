@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treble Clef - Middle C</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .staff-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        svg {
+            display: block;
+        }
+
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+            width: 170px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .speed-control label {
+            font-size: 14px;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .speed-control input[type="range"] {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .speed-value {
+            font-size: 14px;
+            color: #333;
+            flex-shrink: 0;
+            min-width: 25px;
+            text-align: right;
+        }
+
+        .speed-value {
+            font-weight: bold;
+            color: #666;
+            min-width: 60px;
+        }
+
+        .clef-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .clef-button {
+            padding: 8px 16px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .clef-button:hover {
+            opacity: 0.8;
+        }
+
+        .clef-button.disabled {
+            background-color: white;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="staff-container">
+        <svg stroke-width="0.3" stroke-dasharray="none" fill="black" stroke="black" font-family="Arial, sans-serif"
+            font-size="10pt" font-weight="normal" font-style="normal" width="190" height="160" viewBox="0 0 190 160"
+            style="width: 190px; height: 160px;">
+            <!-- Staff lines (5 lines) -->
+            <!-- <line x1="50" y1="60" x2="350" y2="60" stroke="black" stroke-width="1.5" />
+            <line x1="50" y1="75" x2="350" y2="75" stroke="black" stroke-width="1.5" />
+            <line x1="50" y1="90" x2="350" y2="90" stroke="black" stroke-width="1.5" />
+            <line x1="50" y1="105" x2="350" y2="105" stroke="black" stroke-width="1.5" />
+            <line x1="50" y1="120" x2="350" y2="120" stroke="black" stroke-width="1.5" /> -->
+
+            <!-- Treble Clef -->
+            <!-- <g transform="translate(30, 15)">
+                <path stroke="none"
+                    d="M30.191 83.208C30.135 82.731,30.191 82.703,30.444 82.45C34.824 78.378,38.138 73.24,38.138 67.034C38.138 63.524,37.155 60.042,35.498 57.627C34.881 56.729,33.842 55.606,33.392 55.606C32.831 55.606,31.567 56.644,30.781 57.543C27.776 60.856,26.794 65.911,26.794 70.123C26.794 72.454,27.102 75.093,27.383 76.75C27.468 77.227,27.496 77.311,27.018 77.733C21.178 82.534,15 88.319,15 96.49C15 103.51,19.802 110.193,29.714 110.193C30.641 110.193,31.708 110.109,32.522 109.94C32.943 109.856,33.027 109.828,33.112 110.305C33.589 113.029,34.207 116.539,34.207 118.449C34.207 124.43,30.163 125.16,27.776 125.16C25.586 125.16,24.547 124.514,24.547 123.98C24.547 123.7,24.912 123.587,25.839 123.278C27.102 122.913,28.535 121.846,28.535 119.488C28.535 117.269,27.131 115.36,24.66 115.36C21.964 115.36,20.335 117.522,20.335 120.021C20.335 122.632,21.908 126.62,28.029 126.62C30.725 126.62,35.976 125.384,35.976 118.533C35.976 116.202,35.246 112.383,34.824 109.856C34.74 109.379,34.768 109.435,35.33 109.182C39.43 107.554,42.125 104.128,42.125 99.551C42.125 94.384,38.334 89.807,32.382 89.807C31.343 89.807,31.343 89.807,31.202 89.077M34.01 61.867C35.33 61.867,36.425 62.962,36.425 65.181C36.425 69.674,32.578 73.324,29.405 76.104C29.124 76.357,28.956 76.3,28.872 75.767C28.703 74.728,28.619 73.352,28.619 72.06C28.619 65.742,31.539 61.867,34.01 61.867M29.602 89.414C29.714 90.172,29.714 90.144,28.984 90.369C25.446 91.576,23.115 94.777,23.115 98.231C23.115 101.853,25.025 104.437,27.776 105.391C28.113 105.504,28.591 105.616,28.872 105.616C29.18 105.616,29.349 105.419,29.349 105.167C29.349 104.886,29.04 104.774,28.759 104.661C27.046 103.931,25.839 102.19,25.839 100.337C25.839 98.006,27.411 96.293,29.882 95.591C30.528 95.423,30.612 95.479,30.697 95.928L32.718 107.975C32.803 108.424,32.747 108.424,32.157 108.536C31.511 108.649,30.697 108.733,29.882 108.733C22.806 108.733,18.229 104.802,18.229 99.186C18.229 96.799,18.65 93.598,21.992 89.807C24.435 87.111,26.288 85.595,28.17 84.079C28.591 83.742,28.675 83.798,28.759 84.219M32.382 95.844C32.297 95.339,32.353 95.226,32.831 95.283C36.116 95.563,38.812 98.315,38.812 101.853C38.812 104.409,37.267 106.458,35.021 107.61C34.544 107.834,34.459 107.834,34.375 107.357">
+                </path>
+            </g> -->
+            <g class="vf-stave" id="vf-auto1000" stroke-width="1" fill="#999999" stroke="#999999">
+                <path fill="none" d="M10 70L180 70"></path>
+                <path fill="none" d="M10 80L180 80"></path>
+                <path fill="none" d="M10 90L180 90"></path>
+                <path fill="none" d="M10 100L180 100"></path>
+                <path fill="none" d="M10 110L180 110"></path>
+            </g>
+            <g class="vf-stavebarline" id="vf-auto1001">
+                <rect x="10" y="69.5" width="1" height="41" stroke="none"></rect>
+            </g>
+            <g class="vf-stavebarline" id="vf-auto1002">
+                <rect x="180" y="69.5" width="1" height="41" stroke="none"></rect>
+            </g>
+
+            <!-- Treble clef -->
+            <g class="vf-clef treble-clef" id="treble-clef">
+                <path stroke="none"
+                    d="M30.191 83.208C30.135 82.731,30.191 82.703,30.444 82.45C34.824 78.378,38.138 73.24,38.138 67.034C38.138 63.524,37.155 60.042,35.498 57.627C34.881 56.729,33.842 55.606,33.392 55.606C32.831 55.606,31.567 56.644,30.781 57.543C27.776 60.856,26.794 65.911,26.794 70.123C26.794 72.454,27.102 75.093,27.383 76.75C27.468 77.227,27.496 77.311,27.018 77.733C21.178 82.534,15 88.319,15 96.49C15 103.51,19.802 110.193,29.714 110.193C30.641 110.193,31.708 110.109,32.522 109.94C32.943 109.856,33.027 109.828,33.112 110.305C33.589 113.029,34.207 116.539,34.207 118.449C34.207 124.43,30.163 125.16,27.776 125.16C25.586 125.16,24.547 124.514,24.547 123.98C24.547 123.7,24.912 123.587,25.839 123.278C27.102 122.913,28.535 121.846,28.535 119.488C28.535 117.269,27.131 115.36,24.66 115.36C21.964 115.36,20.335 117.522,20.335 120.021C20.335 122.632,21.908 126.62,28.029 126.62C30.725 126.62,35.976 125.384,35.976 118.533C35.976 116.202,35.246 112.383,34.824 109.856C34.74 109.379,34.768 109.435,35.33 109.182C39.43 107.554,42.125 104.128,42.125 99.551C42.125 94.384,38.334 89.807,32.382 89.807C31.343 89.807,31.343 89.807,31.202 89.077M34.01 61.867C35.33 61.867,36.425 62.962,36.425 65.181C36.425 69.674,32.578 73.324,29.405 76.104C29.124 76.357,28.956 76.3,28.872 75.767C28.703 74.728,28.619 73.352,28.619 72.06C28.619 65.742,31.539 61.867,34.01 61.867M29.602 89.414C29.714 90.172,29.714 90.144,28.984 90.369C25.446 91.576,23.115 94.777,23.115 98.231C23.115 101.853,25.025 104.437,27.776 105.391C28.113 105.504,28.591 105.616,28.872 105.616C29.18 105.616,29.349 105.419,29.349 105.167C29.349 104.886,29.04 104.774,28.759 104.661C27.046 103.931,25.839 102.19,25.839 100.337C25.839 98.006,27.411 96.293,29.882 95.591C30.528 95.423,30.612 95.479,30.697 95.928L32.718 107.975C32.803 108.424,32.747 108.424,32.157 108.536C31.511 108.649,30.697 108.733,29.882 108.733C22.806 108.733,18.229 104.802,18.229 99.186C18.229 96.799,18.65 93.598,21.992 89.807C24.435 87.111,26.288 85.595,28.17 84.079C28.591 83.742,28.675 83.798,28.759 84.219M32.382 95.844C32.297 95.339,32.353 95.226,32.831 95.283C36.116 95.563,38.812 98.315,38.812 101.853C38.812 104.409,37.267 106.458,35.021 107.61C34.544 107.834,34.459 107.834,34.375 107.357">
+                </path>
+            </g>
+
+            <!-- Bass clef -->
+            <g class="vf-clef bass-clef" id="bass-clef" style="display: none;">
+                <path stroke="none"
+                    d="M25.193 69.414C18.145 69.414,15 74.552,15 78.428C15 81.657,16.685 84.437,19.97 84.437C22.525 84.437,24.266 82.668,24.266 80.168C24.266 77.585,22.357 75.956,20.391 75.956C19.296 75.956,18.875 76.237,18.37 76.237C17.836 76.237,17.696 75.928,17.696 75.507C17.696 73.907,20.139 70.93,24.266 70.93C28.535 70.93,30.416 75.142,30.416 81.488C30.416 92.776,24.828 99.094,15.393 104.458C15.028 104.654,14.803 104.879,14.803 105.188C14.803 105.44,14.972 105.665,15.337 105.665C15.534 105.665,15.758 105.609,16.011 105.469C25.951 100.611,36.481 93.422,36.481 81.123C36.481 74.103,32.185 69.414,25.193 69.414M40.44 72.727C39.177 72.727,38.222 73.682,38.222 74.946C38.222 76.209,39.177 77.164,40.44 77.164C41.676 77.164,42.659 76.209,42.659 74.946C42.659 73.682,41.676 72.727,40.44 72.727M40.469 82.864C39.233 82.864,38.278 83.791,38.278 85.054C38.278 86.318,39.233 87.245,40.469 87.245C41.732 87.245,42.659 86.318,42.659 85.054C42.659 83.791,41.732 82.864,40.469 82.864">
+                </path>
+            </g>
+
+            <!-- Ledger lines (below the staff) -->
+            <line id="ledger-line-1" x1="65" y1="120" x2="95" y2="120" stroke="black" stroke-width="1"
+                style="display: none;" />
+            <line id="ledger-line-2" x1="65" y1="130" x2="95" y2="130" stroke="black" stroke-width="1"
+                style="display: none;" />
+            <!-- Ledger lines (above the staff) -->
+            <line id="ledger-line-3" x1="65" y1="60" x2="95" y2="60" stroke="black" stroke-width="1"
+                style="display: none;" />
+            <line id="ledger-line-4" x1="65" y1="50" x2="95" y2="50" stroke="black" stroke-width="1"
+                style="display: none;" />
+
+            <g class="vf-stavenote" id="vf-auto1004">
+                <g class="vf-notehead" id="vf-auto1007" pointer-events="bounding-box">
+                    <!-- Middle C note head -->
+                    <path id="note-head" stroke="none" transform="translate(0, 50)"
+                        d="M78.939 64.946C73.576 64.946,70.206 67.164,70.206 69.916C70.206 72.64,72.509 75.054,78.546 75.054C85.173 75.054,87.279 72.752,87.279 69.916C87.279 67.052,82.702 64.946,78.939 64.946M74.699 67.445C75.148 66.041,76.636 65.844,77.9 65.844C80.68 65.844,82.898 68.821,82.898 71.264C82.898 72.499,82.365 73.65,81.045 73.959C80.652 74.072,80.202 74.128,79.781 74.128C78.321 74.128,76.833 73.145,75.99 72.022C75.176 71.095,74.586 69.719,74.586 68.428C74.586 68.091,74.615 67.782,74.699 67.445">
+                    </path>
+                    <!-- Note stem for middle C -->
+                    <line id="note-stem" x1="87.2" y1="120" x2="87.2" y2="85" stroke="black" stroke-width="1.5" />
+                </g>
+            </g>
+        </svg>
+        <div class="controls">
+            <div class="speed-control">
+                <label for="speed-slider">Speed:</label>
+                <input type="range" id="speed-slider" min="0" max="4" value="0" step="1">
+                <span class="speed-value" id="speed-display">1s</span>
+            </div>
+            <div class="clef-buttons">
+                <button class="clef-button" id="treble-button">Treble</button>
+                <button class="clef-button" id="bass-button">Bass</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Treble clef notes: G (bottom) through D (two ledger lines above staff)
+        const trebleNotes = [
+            { name: 'G', y: 135, ledgerLines: [120, 130], stemUp: true },  // Below staff - needs both ledger lines
+            { name: 'A', y: 130, ledgerLines: [120, 130], stemUp: true },  // Below staff - on 2nd ledger, show both
+            { name: 'B', y: 125, ledgerLines: [120], stemUp: true },       // Below staff - needs middle C ledger
+            { name: 'C', y: 120, ledgerLines: [120], stemUp: true },       // Middle C - needs ledger line
+            { name: 'D', y: 115, ledgerLines: [], stemUp: true },          // Just below bottom line
+            { name: 'E', y: 110, ledgerLines: [], stemUp: true },          // Bottom line
+            { name: 'F', y: 105, ledgerLines: [], stemUp: true },          // Space
+            { name: 'G', y: 100, ledgerLines: [], stemUp: true },          // 2nd line from bottom
+            { name: 'A', y: 95, ledgerLines: [], stemUp: true },           // Space
+            { name: 'B', y: 90, ledgerLines: [], stemUp: true },           // Middle line
+            { name: 'C', y: 85, ledgerLines: [], stemUp: false },          // 3rd space - stem down
+            { name: 'D', y: 80, ledgerLines: [], stemUp: false },          // 4th line - stem down
+            { name: 'E', y: 75, ledgerLines: [], stemUp: false },          // 4th space - stem down
+            { name: 'F', y: 70, ledgerLines: [], stemUp: false },          // Top line - stem down
+            { name: 'G', y: 65, ledgerLines: [], stemUp: false },          // Space above staff - stem down
+            { name: 'A', y: 60, ledgerLines: [60], stemUp: false },        // 1st ledger line above - stem down
+            { name: 'B', y: 55, ledgerLines: [60], stemUp: false },        // Space - needs ledger below
+            { name: 'C', y: 50, ledgerLines: [50, 60], stemUp: false },    // 2nd ledger line above - show both
+            { name: 'D', y: 45, ledgerLines: [50, 60], stemUp: false }     // Space above 2nd ledger - show both
+        ];
+
+        // Bass clef notes (same positions, different note names)
+        const bassNotes = [
+            { name: 'B', y: 135, ledgerLines: [120, 130], stemUp: true },  // Below staff
+            { name: 'C', y: 130, ledgerLines: [120, 130], stemUp: true },  // Below staff
+            { name: 'D', y: 125, ledgerLines: [120], stemUp: true },       // Below staff
+            { name: 'E', y: 120, ledgerLines: [120], stemUp: true },       // Below staff
+            { name: 'F', y: 115, ledgerLines: [], stemUp: true },          // Just below bottom line
+            { name: 'G', y: 110, ledgerLines: [], stemUp: true },          // Bottom line
+            { name: 'A', y: 105, ledgerLines: [], stemUp: true },          // Space
+            { name: 'B', y: 100, ledgerLines: [], stemUp: true },          // 2nd line from bottom
+            { name: 'C', y: 95, ledgerLines: [], stemUp: true },           // Space
+            { name: 'D', y: 90, ledgerLines: [], stemUp: true },           // Middle line
+            { name: 'E', y: 85, ledgerLines: [], stemUp: false },          // 3rd space - stem down
+            { name: 'F', y: 80, ledgerLines: [], stemUp: false },          // 4th line - stem down
+            { name: 'G', y: 75, ledgerLines: [], stemUp: false },          // 4th space - stem down
+            { name: 'A', y: 70, ledgerLines: [], stemUp: false },          // Top line - stem down
+            { name: 'B', y: 65, ledgerLines: [], stemUp: false },          // Space above staff - stem down
+            { name: 'C', y: 60, ledgerLines: [60], stemUp: false },        // 1st ledger line above - stem down
+            { name: 'D', y: 55, ledgerLines: [60], stemUp: false },        // Space - needs ledger below
+            { name: 'E', y: 50, ledgerLines: [50, 60], stemUp: false },    // 2nd ledger line above - show both
+            { name: 'F', y: 45, ledgerLines: [50, 60], stemUp: false }     // Space above 2nd ledger - show both
+        ];
+
+        let currentNoteIndex = 0;
+        let isTrebleClef = true;
+        let currentNotes = trebleNotes;
+        let consecutiveClefCount = 1; // Track consecutive notes on same clef
+        let trebleEnabled = true;
+        let bassEnabled = true;
+
+        const noteHead = document.getElementById('note-head');
+        const noteStem = document.getElementById('note-stem');
+        const ledgerLine1 = document.getElementById('ledger-line-1');
+        const ledgerLine2 = document.getElementById('ledger-line-2');
+        const ledgerLine3 = document.getElementById('ledger-line-3');
+        const ledgerLine4 = document.getElementById('ledger-line-4');
+        const trebleClefElement = document.getElementById('treble-clef');
+        const bassClefElement = document.getElementById('bass-clef');
+        const trebleButton = document.getElementById('treble-button');
+        const bassButton = document.getElementById('bass-button');
+
+        function updateNote() {
+            // Show/hide clefs based on current state
+            if (isTrebleClef) {
+                trebleClefElement.style.display = 'block';
+                bassClefElement.style.display = 'none';
+            } else {
+                trebleClefElement.style.display = 'none';
+                bassClefElement.style.display = 'block';
+            }
+
+            const note = currentNotes[currentNoteIndex];
+            const translateY = note.y - 70; // Base y for the note head path
+
+            // Update note head position
+            noteHead.setAttribute('transform', `translate(0, ${translateY})`);
+
+            // Update stem position and direction (3.5 spaces = 35 pixels)
+            if (note.stemUp) {
+                // Stem on right side, going up
+                noteStem.setAttribute('x1', '87.2');
+                noteStem.setAttribute('x2', '87.2');
+                noteStem.setAttribute('y1', note.y);
+                noteStem.setAttribute('y2', note.y - 35);
+            } else {
+                // Stem on left side, going down
+                noteStem.setAttribute('x1', '70.2');
+                noteStem.setAttribute('x2', '70.2');
+                noteStem.setAttribute('y1', note.y);
+                noteStem.setAttribute('y2', note.y + 35);
+            }
+
+            // Show/hide ledger lines based on note requirements
+            ledgerLine1.style.display = 'none';
+            ledgerLine2.style.display = 'none';
+            ledgerLine3.style.display = 'none';
+            ledgerLine4.style.display = 'none';
+
+            if (note.ledgerLines.length > 0) {
+                note.ledgerLines.forEach(y => {
+                    if (y === 120) {
+                        ledgerLine1.style.display = 'block';
+                    } else if (y === 130) {
+                        ledgerLine2.style.display = 'block';
+                    } else if (y === 60) {
+                        ledgerLine3.style.display = 'block';
+                    } else if (y === 50) {
+                        ledgerLine4.style.display = 'block';
+                    }
+                });
+            }
+
+            // Decide whether to switch clef for NEXT note
+            let switchClef = false;
+
+            // Only switch if both clefs are enabled
+            if (trebleEnabled && bassEnabled) {
+                if (consecutiveClefCount >= 3) {
+                    // Must switch after 3 consecutive notes
+                    switchClef = true;
+                } else {
+                    // Randomly decide (50% chance to switch)
+                    switchClef = Math.random() < 0.5;
+                }
+
+                if (switchClef) {
+                    isTrebleClef = !isTrebleClef;
+                    currentNotes = isTrebleClef ? trebleNotes : bassNotes;
+                    consecutiveClefCount = 1; // Reset counter
+                } else {
+                    consecutiveClefCount++; // Increment counter
+                }
+            } else if (trebleEnabled && !bassEnabled) {
+                // Only treble enabled
+                isTrebleClef = true;
+                currentNotes = trebleNotes;
+            } else if (!trebleEnabled && bassEnabled) {
+                // Only bass enabled
+                isTrebleClef = false;
+                currentNotes = bassNotes;
+            }
+
+            // Move to next note - pick a random one different from current
+            let nextIndex;
+            do {
+                nextIndex = Math.floor(Math.random() * currentNotes.length);
+            } while (nextIndex === currentNoteIndex && currentNotes.length > 1);
+            currentNoteIndex = nextIndex;
+        }
+
+        // Speed settings (in milliseconds)
+        const speeds = [1000, 1500, 2000, 2500, 3000];
+        const speedLabels = ['1s', '1.5s', '2s', '2.5s', '3s'];
+        let currentSpeed = speeds[0]; // Default to 1 second
+        let intervalId;
+
+        // Start the interval
+        function startInterval() {
+            if (intervalId) clearInterval(intervalId);
+            intervalId = setInterval(updateNote, currentSpeed);
+        }
+
+        // Handle speed slider change
+        const speedSlider = document.getElementById('speed-slider');
+        const speedDisplay = document.getElementById('speed-display');
+
+        speedSlider.addEventListener('input', (e) => {
+            const index = parseInt(e.target.value);
+            currentSpeed = speeds[index];
+            speedDisplay.textContent = speedLabels[index];
+            startInterval();
+        });
+
+        // Handle clef button clicks
+        trebleButton.addEventListener('click', () => {
+            trebleEnabled = !trebleEnabled;
+            trebleButton.classList.toggle('disabled');
+
+            // Ensure at least one clef is enabled
+            if (!trebleEnabled && !bassEnabled) {
+                trebleEnabled = true;
+                trebleButton.classList.remove('disabled');
+            }
+        });
+
+        bassButton.addEventListener('click', () => {
+            bassEnabled = !bassEnabled;
+            bassButton.classList.toggle('disabled');
+
+            // Ensure at least one clef is enabled
+            if (!trebleEnabled && !bassEnabled) {
+                bassEnabled = true;
+                bassButton.classList.remove('disabled');
+            }
+        });
+
+        // Display the first note immediately
+        updateNote();
+
+        // Start the interval
+        startInterval();
+    </script>
+</body>
+
+</html>
