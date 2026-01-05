@@ -165,7 +165,7 @@
         <div class="controls">
             <div class="speed-control">
                 <label for="speed-slider">Speed:</label>
-                <input type="range" id="speed-slider" min="0" max="4" value="0" step="1">
+                <input type="range" id="speed-slider" min="0" max="6" value="0" step="1">
                 <span class="speed-value" id="speed-display">1s</span>
             </div>
             <div class="clef-buttons">
@@ -176,7 +176,7 @@
     </div>
 
     <script>
-        // Treble clef notes: G (bottom) through D (two ledger lines above staff)
+        // Treble clef notes: G (bottom) through G (space above staff)
         const trebleNotes = [
             { name: 'G', y: 135, ledgerLines: [120, 130], stemUp: true },  // Below staff - needs both ledger lines
             { name: 'A', y: 130, ledgerLines: [120, 130], stemUp: true },  // Below staff - on 2nd ledger, show both
@@ -192,11 +192,7 @@
             { name: 'D', y: 80, ledgerLines: [], stemUp: false },          // 4th line - stem down
             { name: 'E', y: 75, ledgerLines: [], stemUp: false },          // 4th space - stem down
             { name: 'F', y: 70, ledgerLines: [], stemUp: false },          // Top line - stem down
-            { name: 'G', y: 65, ledgerLines: [], stemUp: false },          // Space above staff - stem down
-            { name: 'A', y: 60, ledgerLines: [60], stemUp: false },        // 1st ledger line above - stem down
-            { name: 'B', y: 55, ledgerLines: [60], stemUp: false },        // Space - needs ledger below
-            { name: 'C', y: 50, ledgerLines: [50, 60], stemUp: false },    // 2nd ledger line above - show both
-            { name: 'D', y: 45, ledgerLines: [50, 60], stemUp: false }     // Space above 2nd ledger - show both
+            { name: 'G', y: 65, ledgerLines: [], stemUp: false }           // Space above staff - stem down
         ];
 
         // Bass clef notes (same positions, different note names)
@@ -330,8 +326,8 @@
         }
 
         // Speed settings (in milliseconds)
-        const speeds = [1000, 1500, 2000, 2500, 3000];
-        const speedLabels = ['1s', '1.5s', '2s', '2.5s', '3s'];
+        const speeds = [1000, 1500, 2000, 2500, 3000, 4000, 5000];
+        const speedLabels = ['1s', '1.5s', '2s', '2.5s', '3s', '4s', '5s'];
         let currentSpeed = speeds[0]; // Default to 1 second
         let intervalId;
 
