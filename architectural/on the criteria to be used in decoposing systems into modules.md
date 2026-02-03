@@ -1,82 +1,141 @@
-# On the criteria to be used in decoposing systems into modules
+# On the Criteria to be Used in Decomposing Systems into Modules
+*Parnas's Timeless Principles remain relevant for Software Architects as well as Business leaders*
+
+## Executive Summary
+
+David Parnas's 1971 paper "On the criteria to be used in decomposing systems into modules" remains one of the most commercially relevant computer science papers ever written. While academia discusses it as foundational theory, practicing architects recognize it as a business optimization framework disguised as a technical treatise.
+
+This analysis explores why Parnas's modularization principles are not just engineering best practices, but strategic business decisions that directly impact market velocity, operational costs, and competitive advantage.
+
+## Introduction: Why This Paper Matters
+
+Decades after publication, Parnas's work continues to surface in every significant architectural decision we make. The paper's enduring relevance stems from its focus on three business-critical outcomes: **independent development**, **changeability**, and **comprehensibility**—each directly translating to bottom-line impact.
+
+**Independent development** enables team scalability and parallel execution, directly affecting time-to-market. In today's environment where engineering talent costs $150K-$400K annually, the ability to parallelize development work is not just a technical advantage—it's a competitive necessity.
+
+**Changeability** addresses the well-documented reality that software maintenance typically consumes 2-3x the initial development cost over a system's lifetime (with some studies suggesting maintenance costs 4-10x initial development depending on system longevity and complexity). When your product's technical debt service begins exceeding new feature velocity, Parnas's principles become survival tools rather than academic concepts.
+
+**Comprehensibility** tackles cognitive load, which directly correlates to defect rates, onboarding time, and incident resolution speed. In an era where production incidents can cost enterprises millions per hour, reducing system complexity becomes a risk management strategy.
 
 
-## Introduction
 
-This is one of the pivotal papers in system decompositions. It is from 1971, and still every bit as relevant in the XXI century.
-In my experience, its considerations come up often in the day to day 
-life of a software developer architect. The reason for this is really simple, and that is because this paper puts as a first class citizen the concept of idependent development, changeability, and comprehensibility.
+## The Paper's Core Insight: A Business Framework Disguised as Technical Theory
 
-Independent development means being able to parallelize operations, which is critical for any team of a certain size. Changeability is key as, depending on various estimations, software support costs 4 to 10 times as much as the first write. Designing for changeability means let's make code cheaper on a TCO (total cost of ownership). Comprehensibility is most of what an engineering does on a day to day basis, being that from the code or from logs, understanding of the running code takes a long time.
+Parnas presents his analysis using the KWIC system (Key Word in Context - a text processing application) as a controlled experiment comparing two modularization approaches:
 
+**Modularization 1: The Flow-Chart Approach**
+- Design follows data flow through processing steps
+- Mirrors traditional waterfall thinking
+- Optimizes for initial development speed
 
+**Modularization 2: Information Hiding**
+- Each module encapsulates design decisions
+- Exposes minimal interfaces to other components  
+- Optimizes for long-term adaptability
 
-## brief summary
+The genius of Parnas's approach lies in demonstrating that both modularizations can produce functionally identical systems, yet yield drastically different business outcomes.
 
-The paper proposes a simple theoretical problem (KWIC system) as a benchmark to compare two possible approaches to modularize and decompose a system. For the sake of this discussion one can think of the KWIC as a small programming challenge where strings are manipulated, reversed, and ordered. Its details are somewhat unimportant in comparison with the modularization so I will not spend too much time going into details.
+### Changeability: The Hidden Cost Center
 
-The two modularizations proposed are:
+Parnas's analysis reveals that flow-chart modularization creates systemic coupling. 
 
-- Modularization 1: a flowchart approach - write code reflecting the way strings / text is flowing through the steps.
-- Modularization 2: use "information hiding" as a criteria. "Every model [...] is characterized by its _knowledge_  of a design decision which it hides from all others.".
+This means that changes ripple across module boundaries, requiring coordinated updates throughout the system for bugs / updates / issues. In business terms, this has multiple permutations:
 
+- **Higher change costs**: Simple feature requests require cross-team coordination
+- **Increased time-to-market**: Changes must be planned and executed system-wide
+- **Risk amplification**: Small changes carry high probability of introducing regressions
 
-Modularization 2 later is called also Encapsulation.
+Information hiding modularization localizes changes to specific modules, dramatically reducing the blast radius of modifications. This architectural choice directly impacts:
 
-The first criteria proposed to compare the options is **changeability**, or "how many places do we need to amend if {x} happens", where x is some sort of requests for change in functionality, with a wider example in the back of the paper regarding a concrete case. THe analysis whos that flowchart systems tend to have data that is very tightly knitted across the steps, therefore causing a change in one step to cause a change ... in every module that makes the system. In the second option instead the changes are localized in one module in general, and at most then in the module that consumes that.
+- **Feature velocity**: New capabilities can be developed independently
+- **A/B testing capability**: Different approaches can be implemented in parallel
+- **Technical debt management**: Legacy components can be incrementally modernized
 
-In terms of **independent development**, the next criteria, it is clear that the Interface between modules need to be established at the outset, by all teams working on this flowchart. 
-These interfaces are very stiff and hard to change. 
-This means different actors working on different parts of the system cannot commence until the whole system is designed, with a massive hit to velocity at first. In the second modularization the interfaces are more abstract, and they are much more independent.
+### Independent Development: The Scalability Multiplier
 
-In terms of **comprehensibility**, the first modularization needs to be understood in its entirety by an individual before operating on that, while in the second modularization the encapsulation allows someone to operate on a smaller subset. This is also nowadays known as cognitive load for a developer (and regression bugs).
+Flow-chart systems require upfront interface agreements across all modules, creating coordination bottlenecks that limit parallel development. This manifests in real organizations as:
 
-An interesting point that the paper makes is that, after assembly, the code produced may be very well the same in the two modularizations BUT the advantages are still remaning.
+- **Lengthy planning cycles**: All teams must align before implementation begins
+- **Reduced autonomy**: Teams cannot make local optimizations without system-wide impact
+- **Communication overhead**: Changes require extensive cross-team coordination
 
-
-## Reflections
-
-### Changeability
-
-The term encapsulation seems to come up very often the day to day life of a software developer / architect. It is a concept we all grasp, and we are able to talk about, but often it is hard to substantiate the **why spending the extra time**, especially with less technical counterparts (PMs, EMs, ...). This paper to me really gets to the point of why that is important. 
-
-
-### Don't use a flow chart to do system design
-
-While important to understand real processes and communicate with otherstake holders, this is a pitfall I fell into so many times. 
-Maybe that is why designing (and maintaining) ETL - extract translate load systems is so complicated: at the end of the day they are DAGs (directed acyclic graphs - flowcharts) that the data traverses, and changes in a node change the whole system.
-
-Another aspect where designing (and maintaining) software as a flowchart becomes pretty cumbersome is when using frameworks to interact with LLMs and agents. These tend to become graphs with some State that gets passed around. Understandind what that `State` has inside can become really complicated, and requires to understand the whole graphs (with all loops and optional edges). For that reasons as soon as subgraphs / separate nodes become available that is a good choice to take, as it at least reduces the scope of the "flowchart".
+Information hiding enables what we now call "loosely coupled, highly cohesive" systems—the foundation of successful microservices architectures and autonomous team structures.
 
 
-### hierarchical and module partial ordering
+## Strategic Implications for Modern Architecture
 
-This is in a separate paper by Dijkstra which I am reviewing in another note, but in essence this means that modules that "uses" or "depend on" others".
-Another definition is that "at higher levels the actual implementation of [module] has lost its identity"
-This paper discusses that a hyerarchical system is necessary, but not sufficient, to get the benefits of modularization.
+### Parnas Predicted the Hardened Interface
 
-### Information hiding
+Long before Stephen Yagge's famous rant about Amazon vs Google and "hardened interface" entered our vocabulary, Parnas identified the core tension between system decomposition strategies and their interplay with team composition (Conway would inform this later on as well). Successful platform engineering organizations implicitly follow information hiding principles:
 
-This is tightly related to the above, and it mostly translates to Encapsulation.
-
-### Comprehensibility
-
-One aspect for this in the era of AI systems is that reduces the pressure on the context for an LLM. This because an agent can think and help on a module without having to "understand" (keep in context) the content of the other. So, one take away, is that **comprehensibility actually helps us when we use agents as well**. 
-
-### One note on coding agents ~doing~ fixing architecture
-
-In late 2025 I looked at a POC service that, due to timing and a heavy use of AI in making it, didn't have a great encapsulation. Actually, it had reversed encapsulation (the inner layer depende on the outer layer). As an exercise, we attempted to have an AI agent (won't name names, but one of the main ones at that time) refactor it to respect the encapsulation proposed in this paper. We didn't just pass in the paper and prompt "please make it so", we actually formulated what we wanted, the changes, and took it in steps. That proved really challenging (the agent couldn't really do it). Agents may be able to do this in the future, but this is to make the point that these sort of large strategic decisions are really hard for an LLM - at least in late 2025.
-
-### The Unix Philosophy
-
-One of the corner stones of the "characteristic style" for Unix is to _Make each program do one thing well_. That quote is actually from 1978 (according to "Unix Time-Sharing System: Foreword"), and every bit as relevant today, probably influenced by this paper. I may be forcing it a bit, but the idea of "comprehensibility" and "changeability" is directly correlated by that. Can you immagine the nightmare of having to, say, amend `sed` and having a dependency on `sort` on unix?
+- **Domain-driven design**: Services encapsulate business capabilities rather than technical functions
+- **API-first development**: Interfaces abstract implementation details - hardened interfaces
+- **Organizational alignment**: Team structures mirror system boundaries (Conway's Law)
 
 
-### Cogs VS R+D VS operating margin VS EBITDA
+### The ETL Anti-Pattern: When Flow-Chart Thinking Persists
 
-One for the financial nerds out there. Ask your CTO before quoting me on this, also as interpreting GAAP is really far from my expertise. Nonetheless, in my experience, the cost of writing new software is (usually) wrapped in R+D, while support existing code is often COGS. The first doesn't get in calculating operating margin, while the second does. They both go into EBITDA though, so in that case it is a wash (but it still makes sense to keep maintenance cost down to me).
+Modern data engineering frequently falls into the flow-chart trap Parnas identified. Traditional ETL pipelines create exactly the systemic coupling he warned against:
 
-## Links and sources
+- **Brittle dependencies**: Schema changes ripple through entire pipeline
+- **Debugging complexity**: Data quality issues require understanding the entire flow  
+- **Deployment coordination**: Pipeline updates require careful orchestration
 
-[On the criteria to be used in decoposing systems into modules](https://dl.acm.org/doi/10.1145/361598.361623)
-[The true cost equation: Software development and maintenance costs explained](https://idealink.tech/blog/software-development-maintenance-true-cost-equation)
+Organizations adopting modern data mesh architectures unconsciously rediscover information hiding principles, treating data domains as encapsulated modules with published interfaces.
+
+### The AI/LLM Development Paradox
+
+Current AI system development presents fascinating parallels to Parnas's observations. Many LLM applications follow flow-chart patterns—passing state through complex graphs of prompts, tools, and decision points. The comprehensibility crisis emerges when these systems require debugging or modification, as complete understanding is required to make risky updates across the whole graph.
+
+Advanced practitioners increasingly adopt modular approaches (standalone graphs, subgraphs, even standalone nodes that can be tested by themselves), encapsulating reasoning capabilities within specialized agents rather than monolithic prompt chains. This mirrors the information hiding principle: each agent maintains internal reasoning strategies while exposing clean interfaces to collaborators.
+
+### Financial Impact: R&D vs. COGS Optimization
+
+GAAP is not my subject, but from a financial operations perspective, Parnas's principles directly affect cost classification under GAAP accounting:
+
+**Research & Development Costs** (typically not included in operating margin calculations):
+- Initial system development
+- New feature implementation
+- Architecture refactoring
+
+**Cost of Goods Sold** (directly impacts operating margins):
+- Production maintenance
+- Bug fixes and patches
+- Performance optimization
+- Security updates
+
+Information hiding architectures do two things at the same time:
+
+- shift costs from COGS to R&D by front-loading design complexity AND
+- reduce COGS (ongoing maintenance burden). 
+
+While this may not improve EBITDA directly, it significantly enhances operating margin performance—a metric closely watched by public company investors.
+
+
+## The Enduring Relevance
+
+Parnas's 1971 insights remain remarkably current because they address fundamental tensions in system design that transcend specific technologies. Whether dealing with monoliths vs. microservices, serverless architectures, or AI system design, the core trade-offs between initial complexity and long-term maintainability persist.
+
+The most successful technology organizations treat Parnas's principles not as academic theory, but as practical business optimization tools. They understand that software architecture is ultimately about optimizing for human coordination at scale—exactly what Parnas identified over fifty years ago.
+
+In an era where software capabilities increasingly determine business success, architects who master these principles position themselves as strategic business assets rather than technical resources. They become the leaders who can navigate the complex trade-offs between short-term delivery pressure and long-term competitive advantage.
+
+## Conclusion: Architecture as Business Strategy
+
+Parnas's paper teaches us that system architecture is never just a technical decision—it's a business strategy encoded in software. The decomposition choices we make today determine our organization's ability to respond to market changes, scale development capacity, and maintain competitive advantage tomorrow.
+
+Modern architects must think beyond code structure to understand how technical decisions ripple through teams, processes, and ultimately business outcomes. Specifically, how technical decisions can lower or raise changeability (read, maintenance) cost.
+
+The principles Parnas outlined in 1971 provide a timeless framework for making these strategic technical decisions. In a world of rapidly evolving technologies, his insights offer stability: focus on changeability, independent development, and comprehensibility, and the specific implementation details become tactical choices rather than strategic constraints.
+
+---
+
+## References and Further Reading
+
+### Primary Source
+- Parnas, D. L. (1972). "On the criteria to be used in decomposing systems into modules." *Communications of the ACM*, 15(12), 1053-1058. [DOI: 10.1145/361598.361623](https://dl.acm.org/doi/10.1145/361598.361623)
+
+### Foundational Papers
+- Conway, M. E. (1968). "How do committees invent?" *Datamation*.
+- Dijkstra, E. W. (1968). "The structure of the 'THE'-multiprogramming system." *Communications of the ACM*.
+- Rokas, J. (2025). "The true cost equation: Software development and maintenance costs explained." [Idealink Tech Blog](https://idealink.tech/blog/software-development-maintenance-true-cost-equation)
