@@ -1,0 +1,31 @@
+# Jekyll development commands
+.PHONY: serve build install clean help
+
+# Set Ruby environment
+RUBY_ENV := PATH="/opt/homebrew/opt/ruby/bin:$$PATH" PKG_CONFIG_PATH="/opt/homebrew/opt/ruby/lib/pkgconfig"
+
+help: ## Show this help message
+	@echo "Available commands:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+install: ## Install Jekyll dependencies
+	$(RUBY_ENV) bundle install
+
+serve: ## Start Jekyll development server with live reload
+	$(RUBY_ENV) bundle exec jekyll serve --livereload
+
+build: ## Build the site for production
+	$(RUBY_ENV) bundle exec jekyll build
+
+clean: ## Clean built files
+	$(RUBY_ENV) bundle exec jekyll clean
+	rm -rf _site
+
+update: ## Update Jekyll dependencies
+	$(RUBY_ENV) bundle update
+
+check: ## Check for broken links and other issues
+	$(RUBY_ENV) bundle exec jekyll doctor
+
+# Default target
+.DEFAULT_GOAL := serve

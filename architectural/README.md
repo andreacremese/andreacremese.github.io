@@ -1,15 +1,37 @@
-# Architectural papers
+---
+title: "Architectural Papers & Analysis"
+layout: default
+description: "Strategic analysis of foundational software architecture papers from a business perspective"
+---
 
-This is the repository of papers / books review on interesting papers for software architectur
+# Architectural Papers & Analysis
 
+A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives. These papers explore how architectural decisions impact organizational design, development velocity, and competitive advantage.
 
-## coming up next
+## Published Papers
 
-- Dijkstra, E. W. (1968). "The structure of the 'THE'-multiprogramming system." *Communications of the ACM*, 11(5), 341-346.
-- Conway, M. E. (1968). "How do committees invent?" *Datamation*, 14(4), 28-31.
-(2020). "The true cost equation: Software development and maintenance costs explained." [Idealink Tech Blog](https://idealink.tech/blog/software-development-maintenance-true-cost-equation)
-- Humble, J., & Farley, D. (2010). *Continuous Delivery: Reliable Software Releases through Build, Test, and Deployment Automation*. Addison-Wesley.
-- Brooks, F. P. (1975). *The Mythical Man-Month: Essays on Software Engineering*. Addison-Wesley.
-- Boehm, B. W., & Basili, V. R. (2001). "Software defect reduction top 10 list." *Computer*, 34(1), 135-137.
-- Kniberg, H. (2014). "Spotify Engineering Culture." [Spotify Labs](https://labs.spotify.com/2014/03/27/spotify-engineering-culture-part-1/)
-- Westrum, R. (2004). "A typology of organisational cultures." *Quality and Safety in Health Care*, 13(2), ii22-ii27.
+### [On the Criteria to be Used in Decomposing Systems into Modules](on%20the%20criteria%20to%20be%20used%20in%20decoposing%20systems%20into%20modules.md)
+**David Parnas (1971)** - How modularization principles become business optimization tools
+
+*Key insights: Information hiding as competitive advantage, Conway's Law implications, technical debt as business risk*
+
+---
+
+## Coming Up Next
+
+### Foundational Architecture Papers
+- **Dijkstra, E. W. (1968)** - "The structure of the 'THE'-multiprogramming system"
+- **Conway, M. E. (1968)** - "How do committees invent?" 
+- **Brooks, F. P. (1975)** - *The Mythical Man-Month: Essays on Software Engineering*
+
+### Modern Applications
+- **Humble, J., & Farley, D. (2010)** - *Continuous Delivery: Reliable Software Releases*
+- **Boehm, B. W., & Basili, V. R. (2001)** - "Software defect reduction top 10 list"
+
+### Organizational Design
+- **Kniberg, H. (2014)** - "Spotify Engineering Culture"
+- **Westrum, R. (2004)** - "A typology of organisational cultures"
+
+---
+
+*Each analysis connects foundational computer science concepts to modern business strategy and organizational design.*

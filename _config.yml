@@ -1,0 +1,35 @@
+# Site configuration for GitHub Pages
+title: "Andrea Cremese - Architecture Notes"
+description: "Strategic software architecture insights and analysis"
+baseurl: ""
+url: "https://andreacremese.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Navigation
+header_pages:
+  - architectural/README.md
+
+# Author
+author:
+  name: Andrea Cremese
+
+# Social links (optional)
+# github_username: andreacremese
+# linkedin_username: yourlinkedin
+
+# Show excerpts on homepage
+show_excerpts: true
+
+# Markdown settings
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
