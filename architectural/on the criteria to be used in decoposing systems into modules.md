@@ -1,10 +1,5 @@
 # On the criteria to be used in decoposing systems into modules
 
-## TODO
-
-[] find a quote / source for the cost of changing software
-
-[link](https://dl.acm.org/doi/10.1145/361598.361623)
 
 ## Introduction
 
@@ -75,3 +70,13 @@ In late 2025 I looked at a POC service that, due to timing and a heavy use of AI
 ### The Unix Philosophy
 
 One of the corner stones of the "characteristic style" for Unix is to _Make each program do one thing well_. That quote is actually from 1978 (according to "Unix Time-Sharing System: Foreword"), and every bit as relevant today, probably influenced by this paper. I may be forcing it a bit, but the idea of "comprehensibility" and "changeability" is directly correlated by that. Can you immagine the nightmare of having to, say, amend `sed` and having a dependency on `sort` on unix?
+
+
+### Cogs VS R+D VS operating margin VS EBITDA
+
+One for the financial nerds out there. Ask your CTO before quoting me on this, also as interpreting GAAP is really far from my expertise. Nonetheless, in my experience, the cost of writing new software is (usually) wrapped in R+D, while support existing code is often COGS. The first doesn't get in calculating operating margin, while the second does. They both go into EBITDA though, so in that case it is a wash (but it still makes sense to keep maintenance cost down to me).
+
+## Links and sources
+
+[On the criteria to be used in decoposing systems into modules](https://dl.acm.org/doi/10.1145/361598.361623)
+[The true cost equation: Software development and maintenance costs explained](https://idealink.tech/blog/software-development-maintenance-true-cost-equation)
