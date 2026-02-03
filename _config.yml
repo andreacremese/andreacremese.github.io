@@ -9,10 +9,15 @@ markdown: kramdown
 highlighter: rouge
 theme: minima
 
+# GitHub Pages specific
+repository: andreacremese/andreacremese.github.io
+github: [metadata]
+
 # Plugins
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+  - jekyll-github-metadata
 
 # Navigation
 header_pages:
