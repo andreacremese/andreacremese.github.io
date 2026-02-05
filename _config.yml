@@ -1,5 +1,6 @@
 # Site configuration for GitHub Pages
-title: "Andrea Cremese - Architecture Notes"
+title: "Andrea Cremese"
+tagline: "A nerd with an MBA"
 description: "Strategic software architecture insights and analysis"
 baseurl: ""
 url: "https://andreacremese.github.io"
@@ -7,7 +8,6 @@ url: "https://andreacremese.github.io"
 # Build settings
 markdown: kramdown
 highlighter: rouge
-theme: minima
 
 # GitHub Pages specific
 repository: andreacremese/andreacremese.github.io

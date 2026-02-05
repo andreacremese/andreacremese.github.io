@@ -15,7 +15,7 @@ Strategic software architecture insights combining technical depth with business
 ### [Architectural Papers & Analysis](architectural/)
 Strategic analysis of foundational software architecture papers from a business perspective. Recent analysis:
 
-**[On the Criteria to be Used in Decomposing Systems into Modules](architectural/on%20the%20criteria%20to%20be%20used%20in%20decoposing%20systems%20into%20modules.md)**  
+**[On the Criteria to be Used in Decomposing Systems into Modules](architectural/on%20the%20criteria%20to%20be%20used%20in%20decoposing%20systems%20into%20modules.html)**  
 *How Parnas's 1971 insights remain essential for modern software architecture and business strategy*
 
 ---

@@ -1,8 +1,8 @@
 # Jekyll development commands
 .PHONY: serve build install clean help
 
-# Set Ruby environment
-RUBY_ENV := PATH="/opt/homebrew/opt/ruby/bin:$$PATH" PKG_CONFIG_PATH="/opt/homebrew/opt/ruby/lib/pkgconfig"
+# Set Ruby environment - uses Homebrew Ruby 3.3
+RUBY_ENV := PATH="/opt/homebrew/opt/ruby@3.3/bin:$$PATH"
 
 help: ## Show this help message
 	@echo "Available commands:"
