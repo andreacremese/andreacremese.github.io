@@ -41,5 +41,5 @@ This will install pre-commit, semgrep, and ggshield using Homebrew, and configur
 To serve the site locally:
 
 ```sh
-bundle exec jekyll serve --livereload
+make serve
 ```
