@@ -33,6 +33,10 @@ A collection of strategic insights on foundational software architecture papers,
 - **Kniberg, H. (2014)** - "Spotify Engineering Culture"
 - **Westrum, R. (2004)** - "A typology of organisational cultures"
 
+
+###
+- Spend a bit of time styling this site
+
 ---
 
 *Each analysis connects foundational computer science concepts to modern business strategy and organizational design.*
