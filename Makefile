@@ -1,3 +1,13 @@
+# Install tools required by pre-commit hooks
+.PHONY: install-hooks-tools
+install-hooks-tools: ## Install pre-commit, semgrep, ggshield, and set up hooks
+	brew install pre-commit semgrep gitguardian/tap/ggshield
+	if ! command -v pre-commit >/dev/null 2>&1; then \
+	  echo "[ERROR] pre-commit is not installed. Please install it with 'brew install pre-commit'."; \
+	  exit 1; \
+	fi
+	pre-commit install
+	echo "pre-commit, semgrep, and ggshield installed via Homebrew. Pre-commit hooks installed."
 # Jekyll development commands
 .PHONY: serve build install clean help
 
