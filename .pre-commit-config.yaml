@@ -1,0 +1,23 @@
+repos:
+  - repo: local
+    hooks:
+      - id: semgrep-secrets
+        name: semgrep p/secrets
+        entry: semgrep --config "p/secrets" --error
+        language: system
+        types: [text]
+      - id: semgrep-security-audit
+        name: semgrep p/security-audit
+        entry: semgrep --config "p/security-audit" --error
+        language: system
+        types: [text]
+      - id: semgrep-ci
+        name: semgrep p/ci
+        entry: semgrep --config "p/ci" --error
+        language: system
+        types: [text]
+      - id: ggshield
+        name: ggshield secret scan
+        entry: ggshield secret scan pre-commit
+        language: system
+        types: [text]
