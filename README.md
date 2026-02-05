@@ -27,4 +27,19 @@ Bridging the gap between technical excellence and business impact. Focus areas i
 - Organizational design and Conway's Law
 - Platform engineering and developer productivity
 - AI/ML system architecture
+
+## Development & Security Setup
+
+To install all required tools and set up pre-commit hooks for security and code quality checks, run:
+
+```sh
+make install-hooks-tools
+```
+
+This will install pre-commit, semgrep, and ggshield using Homebrew, and configure the pre-commit hooks automatically.
+
+To serve the site locally:
+
+```sh
 bundle exec jekyll serve --livereload
+```
