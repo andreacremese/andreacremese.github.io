@@ -7,7 +7,7 @@ permalink: /architectural/
 
 # Architectural Papers & Analysis
 
-A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives. These papers explore how architectural decisions impact organizational design, development velocity, and competitive advantage. A Nerd with an MBA.
+A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives.
 
 ## Published Papers
 
@@ -16,27 +16,9 @@ A collection of strategic insights on foundational software architecture papers,
 
 *Key insights: Information hiding as competitive advantage, Conway's Law implications, technical debt as business risk*
 
----
+### [The structure of the “THE”-multiprogramming system](the-structure-of-the-multiprogramming-system.html)
+**E. W. Dijkstra (1968)** - Layered abstractions as a system design and verification strategy
 
-## Coming Up Next
-
-### Foundational Architecture Papers
-- **Dijkstra, E. W. (1968)** - "The structure of the 'THE'-multiprogramming system"
-- **Conway, M. E. (1968)** - "How do committees invent?" 
-- **Brooks, F. P. (1975)** - *The Mythical Man-Month: Essays on Software Engineering*
-
-### Modern Applications
-- **Humble, J., & Farley, D. (2010)** - *Continuous Delivery: Reliable Software Releases*
-- **Boehm, B. W., & Basili, V. R. (2001)** - "Software defect reduction top 10 list"
-
-### Organizational Design
-- **Kniberg, H. (2014)** - "Spotify Engineering Culture"
-- **Westrum, R. (2004)** - "A typology of organisational cultures"
-
-
-###
-- Spend a bit of time styling this site
+*Key insights: Logical ordering, independent verification, and information hiding across layers*
 
 ---
-
-*Each analysis connects foundational computer science concepts to modern business strategy and organizational design.*

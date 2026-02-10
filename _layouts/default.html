@@ -5,116 +5,246 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title | default: site.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Source+Sans+3:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --bg: #f4f3ef;
+            --ink: #14181f;
+            --muted: #5a646f;
+            --line: #d7d2c8;
+            --card: #fbfaf7;
+            --accent: #1f6b5f;
+            --accent-weak: rgba(31, 107, 95, 0.12);
+            --code-bg: #f1efe9;
+            --shadow: 0 12px 40px rgba(20, 24, 31, 0.08);
+        }
+
         * {
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #2c3e50;
-            background: #f8f9fa;
+            font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--ink);
+            background:
+                radial-gradient(1200px 500px at 10% -10%, #e7e3d8 0%, rgba(231, 227, 216, 0) 60%),
+                radial-gradient(900px 400px at 90% 0%, #e6efe9 0%, rgba(230, 239, 233, 0) 55%),
+                var(--bg);
             margin: 0;
             padding: 0;
         }
 
         header {
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 30px 0;
-            margin-bottom: 40px;
-            position: sticky;
-            top: 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background: rgba(251, 250, 247, 0.92);
+            border-bottom: 1px solid var(--line);
+            padding: 16px 0 12px;
         }
 
         header>div {
-            max-width: 800px;
+            max-width: 920px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 24px;
+        }
+
+        .masthead {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: "Fraunces", "Times New Roman", serif;
+            letter-spacing: -0.01em;
         }
 
         h1 {
-            margin: 0 0 5px 0;
-            font-size: 28px;
-            font-weight: 600;
+            margin: 0 0 4px 0;
+            font-size: clamp(1.75rem, 2.4vw, 2.35rem);
+            font-weight: 650;
         }
 
         .tagline {
-            font-size: 14px;
-            color: #666;
-            margin: 0 0 15px 0;
-            font-style: italic;
+            font-size: 1.12rem;
+            color: var(--muted);
+            margin: 0 0 8px 0;
+            max-width: 360px;
+            text-align: right;
         }
 
         nav {
             display: flex;
-            gap: 20px;
+            gap: 18px;
             flex-wrap: wrap;
             align-items: center;
+            font-size: 0.95rem;
         }
 
         nav a {
-            color: #0066cc;
+            color: var(--ink);
             text-decoration: none;
-            font-size: 14px;
             font-weight: 500;
-            padding: 5px 0;
+            padding: 6px 0;
             border-bottom: 2px solid transparent;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s ease, color 0.2s ease;
         }
 
         nav a:hover {
-            border-bottom-color: #0066cc;
+            color: var(--accent);
+            border-bottom-color: var(--accent);
         }
 
         nav.breadcrumbs {
-            gap: 5px;
-            margin-top: 10px;
-            font-size: 14px;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: var(--muted);
+            justify-content: space-between;
         }
 
-        nav.breadcrumbs span {
-            color: #666;
-            margin: 0;
-            display: flex;
+        .nav-right {
+            margin-left: auto;
+            display: inline-flex;
             align-items: center;
-            height: 100%;
+            gap: 6px;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .social-link:hover {
+            color: var(--accent);
+        }
+
+
+        nav.breadcrumbs span {
+            color: var(--muted);
+            display: inline-flex;
+            align-items: center;
             line-height: 1;
         }
 
         nav.breadcrumbs a {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            height: 100%;
             line-height: 1;
+            color: var(--muted);
         }
 
+        nav.breadcrumbs a:hover {
+            color: var(--accent);
+        }
+
+        .layout {
+            max-width: 1120px;
+            margin: 32px auto 64px;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .page-rail {
+            position: sticky;
+            top: 32px;
+        }
+
+        .rail-card {
+            background: rgba(251, 250, 247, 0.9);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 16px 12px;
+            box-shadow: 0 8px 24px rgba(20, 24, 31, 0.08);
+        }
+
+        .rail-title {
+            font-family: "Fraunces", "Times New Roman", serif;
+            font-size: 0.95rem;
+            margin: 0 0 10px 0;
+            color: var(--muted);
+        }
+
+        .rail-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            font-size: 0.92rem;
+            text-align: left;
+        }
+
+        .rail-nav a {
+            display: block;
+            max-width: 100%;
+            color: var(--muted);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .rail-nav a:hover,
+        .rail-nav a:focus {
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+
         main {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px 40px;
-            background: white;
-            min-height: calc(100vh - 150px);
+            padding: 36px 28px 48px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            min-height: calc(100vh - 180px);
+        }
+
+        main>h1:first-child {
+            font-size: clamp(2rem, 3.2vw, 3rem);
+            margin-top: 0;
         }
 
         h2 {
-            font-size: 22px;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            border-left: 4px solid #0066cc;
+            font-size: clamp(1.4rem, 2vw, 1.65rem);
+            margin-top: 32px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--accent);
             padding-left: 12px;
+            scroll-margin-top: 24px;
         }
 
         h3 {
-            font-size: 18px;
+            font-size: 1.1rem;
             margin-top: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            scroll-margin-top: 24px;
         }
 
         a {
-            color: #0066cc;
+            color: var(--accent);
         }
 
         a:hover {
@@ -125,24 +255,47 @@
             font-weight: 600;
         }
 
+        code,
+        pre {
+            font-family: "Source Code Pro", "SFMono-Regular", Menlo, Consolas, monospace;
+        }
+
         code {
-            background: #f4f4f4;
+            background: var(--code-bg);
             padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 16px 18px;
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid #e1d9cd;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.92rem;
         }
 
         blockquote {
-            border-left: 4px solid #e0e0e0;
-            padding-left: 15px;
+            border-left: 4px solid var(--line);
+            padding-left: 16px;
             margin-left: 0;
-            color: #666;
+            color: var(--muted);
+            background: var(--accent-weak);
+            border-radius: 8px;
+            padding: 12px 16px;
         }
 
         ul,
         ol {
-            margin: 15px 0;
-            padding-left: 25px;
+            margin: 16px 0;
+            padding-left: 26px;
         }
 
         li {
@@ -151,8 +304,77 @@
 
         hr {
             border: none;
-            border-top: 1px solid #e0e0e0;
-            margin: 30px 0;
+            border-top: 1px solid var(--line);
+            margin: 32px 0;
+        }
+
+        footer {
+            max-width: 1120px;
+            margin: 0 auto 48px;
+            padding: 0 24px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        footer .footer-inner {
+            border-top: 1px solid var(--line);
+            padding-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        ::selection {
+            background: rgba(31, 107, 95, 0.2);
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .page-rail {
+                display: none;
+            }
+        }
+
+        @media (max-width: 700px) {
+            header>div {
+                padding: 0 18px;
+            }
+
+            .masthead {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .tagline {
+                text-align: left;
+            }
+
+            .layout {
+                margin: 24px auto 48px;
+                padding: 0 16px;
+            }
+
+            main {
+                padding: 28px 20px 36px;
+            }
+
+            footer {
+                padding: 0 16px;
+            }
         }
     </style>
 </head>
@@ -160,8 +382,10 @@
 <body>
     <header>
         <div>
-            <h1>{{ site.title }}</h1>
-            {% if site.tagline %}<p class="tagline">{{ site.tagline }}</p>{% endif %}
+            <div class="masthead">
+                <h1>{{ site.title }}</h1>
+                {% if site.tagline %}<p class="tagline">{{ site.tagline }}</p>{% endif %}
+            </div>
 
             {% unless page.url == "/" %}
             <nav class="breadcrumbs">
@@ -173,24 +397,91 @@
                 {% if forloop.last %}
                 <span>{{ page.title }}</span>
                 {% else %}
-                {% capture breadcrumb_url %}/{% for i in (0..forloop.index0) %}{{ url_parts[i] }}{% if i <
-                    forloop.index0 %}/{% endif %}{% endfor %}/{% endcapture %} <a href="{{ breadcrumb_url | replace:"
-                    //" ,"/" }}">{{ part | replace: "-", " " | capitalize }}</a>
+                {% capture breadcrumb_url %}{% for i in (0..forloop.index0) %}{{ url_parts[i] | uri_escape }}{% if i <
+                    forloop.index0 %}/{% endif %}{% endfor %}{% endcapture %}
+                <a href="/{{ breadcrumb_url }}">{{ part | replace: "-", " " | capitalize | escape }}</a>
                     {% endif %}
                     {% endif %}
                     {% endfor %}
+                    <span class="nav-right">
+                        <a class="social-link" href="https://www.linkedin.com/in/andreacremese/" rel="me">LinkedIn</a>
+                    </span>
             </nav>
             {% else %}
             <nav class="breadcrumbs">
                 <a href="/">Home</a>
+                <span class="nav-right">
+                    <a class="social-link" href="https://www.linkedin.com/in/andreacremese/" rel="me">LinkedIn</a>
+                </span>
             </nav>
             {% endunless %}
         </div>
     </header>
 
-    <main>
-        {{ content }}
-    </main>
+    <div class="layout">
+        <aside class="page-rail" aria-label="Section navigation">
+            <div class="rail-card">
+                <p class="rail-title">On this page</p>
+                <nav class="rail-nav" id="page-rail"></nav>
+            </div>
+        </aside>
+        <main>
+            {{ content }}
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-inner">
+            <span>Connect:</span>
+            <a href="https://www.linkedin.com/in/andreacremese/" rel="me">LinkedIn</a>
+        </div>
+    </footer>
+
+    <script>
+        const rail = document.getElementById("page-rail");
+        const railCard = rail ? rail.closest(".page-rail") : null;
+        const headings = document.querySelectorAll("main h2");
+
+        const slugify = (text) => text
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .trim()
+            .replace(/\s+/g, "-")
+            .slice(0, 64);
+
+        const ensureId = (heading) => {
+            if (heading.id) {
+                return heading.id;
+            }
+
+            const base = slugify(heading.textContent || "section");
+            let id = base || "section";
+            let counter = 2;
+
+            while (document.getElementById(id)) {
+                id = `${base}-${counter}`;
+                counter += 1;
+            }
+
+            heading.id = id;
+            return id;
+        };
+
+        if (rail && railCard && headings.length > 0) {
+            headings.forEach((heading) => {
+                const id = ensureId(heading);
+                const link = document.createElement("a");
+                link.href = `#${id}`;
+                const label = (heading.textContent || "Section")
+                    .replace(/\s+/g, " ")
+                    .trim();
+                link.textContent = label;
+                rail.appendChild(link);
+            });
+        } else if (railCard) {
+            railCard.style.display = "none";
+        }
+    </script>
 </body>
 
 </html>
