@@ -30,7 +30,7 @@ AI tooling is evolving at breakneck speed. This post is a quick, opinionated tak
 
 I’ll admit it: I’ve never been a fan of MCPs. Maybe it’s because I like to see what my agent is doing in the terminal, or maybe it’s my inner minimalist.
 
-> The only thing that doesn’t break on the race car is what you **don’t** put on the race car”. 
+> The only thing that doesn’t break on the race car is what you **don’t** put on the race car.
 
 So, unless I really need an MCP ... why add it?
 
@@ -94,6 +94,6 @@ If you need something often and there’s no CLI, write a small script in your f
 This space is moving fast. What’s true today might be obsolete tomorrow. For now, CLIs are more flexible, composable, and context-friendly than MCPs. But keep an eye out—next month, the landscape could change again.
 
 ## References
-   [MCP vs CLI: Benchmarking Tools for Coding Agents 2025-08-15](https://mariozechner.at/posts/2025-08-15-mcp-vs-cli/)
-   [What if you don't need MCP at all? 2025-11-02](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/)
-   [Why I Went From REST APIs to MCPs to CLIs and Ended Up with Self-Improving AI 2025-09-12](https://wonderwhy-er.medium.com/why-i-went-from-rest-apis-to-mcps-to-clis-and-ended-up-with-self-improving-ai-8b492631f565)
+- [MCP vs CLI: Benchmarking Tools for Coding Agents 2025-08-15](https://mariozechner.at/posts/2025-08-15-mcp-vs-cli/)
+- [What if you don't need MCP at all? 2025-11-02](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/)
+- [Why I Went From REST APIs to MCPs to CLIs and Ended Up with Self-Improving AI 2025-09-12](https://wonderwhy-er.medium.com/why-i-went-from-rest-apis-to-mcps-to-clis-and-ended-up-with-self-improving-ai-8b492631f565)
