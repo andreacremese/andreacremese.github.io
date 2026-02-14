@@ -9,7 +9,7 @@ permalink: /architectural/
 
 A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives.
 
-## Published Papers
+## Pages 
 
 ### [On the Criteria to be Used in Decomposing Systems into Modules](on%20the%20criteria%20to%20be%20used%20in%20decoposing%20systems%20into%20modules.html)
 **David Parnas (1971)** - How modularization principles become business optimization tools

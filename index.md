@@ -23,14 +23,19 @@ I am a Staff Software Engineer, working on architectural desgin, coding best pra
 
 
 ##  Areas
-### [Foundational Architecture Papers](architectural/)
+### [Architecture Papers & Analysis](architectural/)
+### [Ai for thinking developers](ai/)
 
-## Latest articles
+
+## Latest pages
+
+**[MCP vs Terminal Calls – Feb 2026](ai/mcp%20vs%20terminal%20for%20tool%20calls.html)**  
+*Context, composability, and design tradeoffs for AI tool calls—why CLIs are more flexible and context-friendly than MCPs, and practical advice for tool builders and developers.*
 
 **[On the Criteria to be Used in Decomposing Systems into Modules](architectural/on%20the%20criteria%20to%20be%20used%20in%20decoposing%20systems%20into%20modules.html)**  
 *How Parnas's 1971 insights remain essential for modern software architecture and business strategy*
 
-**[The Structure of the Multiprogramming System](architectural/the-structure-of-the-multiprogramming-system.html)**  
+**[The Structure of the "THE"-Multiprogramming System](architectural/the-structure-of-the-multiprogramming-system.html)**  
 *Layered abstractions as a system design and verification strategy*
 
 ## Coming Up Next
