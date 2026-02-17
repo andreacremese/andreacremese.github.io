@@ -9,25 +9,21 @@ permalink: /
 
 Welcome to my repositiry of papers, articles, and notes exploring how foundational computer science principles translate to competitive advantage in the tech sector, and in general my notes on interesting tech subjects.
 
-Focus areas include:
-- Strategic software architecture
+*(I also needed a place to keep my notes straight. Sunlight as the best disinfectant...)*
+
+##  Areas
+
+- [Strategic software architecture](architectural/)
+- [AI for thinking developers](ai/)
 - Technical debt as business risk
 - Organizational design and Conway's Law
 - Platform engineering and developer productivity
 - AI/ML system architecture
-- Using AI sensibly as a software developer.
-
-## Who is Andrea Cremese?
-
-I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I like many things, I am a NERD with an MBA...
-
-
-##  Areas
-### [Architecture Papers & Analysis](architectural/)
-### [Ai for thinking developers](ai/)
-
 
 ## Latest pages
+
+**[An example of encapsulation in Go: Enums for Status Disclosure – Feb 2026](architectural/example-of-encapsulation-enums-in-golang.html)**  
+*Applying information hiding principles to API design—how status enums reduce coordination costs and enable parallel team development*
 
 **[MCP vs Terminal Calls – Feb 2026](ai/mcp%20vs%20terminal%20for%20tool%20calls.html)**  
 *Context, composability, and design tradeoffs for AI tool calls—why CLIs are more flexible and context-friendly than MCPs, and practical advice for tool builders and developers.*
@@ -38,8 +34,15 @@ I am a Staff Software Engineer, working on architectural desgin, coding best pra
 **[The Structure of the "THE"-Multiprogramming System](architectural/the-structure-of-the-multiprogramming-system.html)**  
 *Layered abstractions as a system design and verification strategy*
 
+## Who is Andrea Cremese?
+
+I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I like many things, I am a NERD with an MBA...
+
+
+
 ## Coming Up Next
 
+Review of some fundational papers:
 
 ### Foundational Architecture Papers
 - **Conway, M. E. (1968)** - "How do committees invent?" 
