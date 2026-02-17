@@ -9,17 +9,6 @@ description: "How David Parnas's 1971 insights on system modularization remain e
 # On the Criteria to be Used in Decomposing Systems into Modules
 *Parnas's Timeless Principles remain relevant for Software Architects as well as Business leaders*
 
-## Table of Contents
-- [Executive Summary](#executive-summary)
-- [Introduction: Why This Paper Matters](#introduction-why-this-paper-matters)
-- [The Paper's Core Insight](#the-papers-core-insight-a-business-framework-disguised-as-technical-theory)
-- [Strategic Implications for Modern Architecture](#strategic-implications-for-modern-architecture)
-- [Practical Implementation Framework](#practical-implementation-framework)
-- [Lessons for Senior Architects](#lessons-for-senior-architects)
-- [The Enduring Relevance](#the-enduring-relevance)
-- [Conclusion: Architecture as Business Strategy](#conclusion-architecture-as-business-strategy)
-- [References and Further Reading](#references-and-further-reading)
-
 ## Executive Summary
 
 David Parnas's 1971 paper "On the criteria to be used in decomposing systems into modules" remains one of the most commercially relevant computer science papers ever written. While academia discusses it as foundational theory, practicing architects recognize it as a business optimization framework disguised as a technical treatise.
