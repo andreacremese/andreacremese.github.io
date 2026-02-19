@@ -27,7 +27,7 @@ Check back soon—new papers and ideas are always popping up. If you have though
 
 Quick snapshot of my current workflow:
 
-- **VS Code Copilot** is my daily driver (though I'm eyeing Cursor)
+- **VS Code Copilot** is my daily driver (though I'm eyeing Claude becuase I like command line, and I miss nvim)
 - **Role prompts at the outset of a chat**: Start each chat with "assume the role of..." — keeps it focused and cuts down hallucinations (tip from a Google training)
 - **Multiple chats**: Different roles, different chats. I have a key combo to swap between them fast
 - **Small steps**: Iterate, commit often. Makes it easy to roll back when things go sideways
