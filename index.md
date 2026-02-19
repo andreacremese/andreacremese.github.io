@@ -47,6 +47,7 @@ Review of some fundational papers:
 ### Foundational Architecture Papers
 - **Conway, M. E. (1968)** - "How do committees invent?" 
 - **Brooks, F. P. (1975)** - *The Mythical Man-Month: Essays on Software Engineering*
+- **Cap Theorem** always a good one as we are on the cluod
 
 ### Modern Applications
 - **Humble, J., & Farley, D. (2010)** - *Continuous Delivery: Reliable Software Releases*
