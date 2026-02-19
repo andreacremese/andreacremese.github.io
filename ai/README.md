@@ -23,4 +23,16 @@ Context, composability, and design tradeoffs for AI tool calls
 
 Check back soon—new papers and ideas are always popping up. If you have thoughts or questions, I’d love to hear from you!
 
+## How I work with AI (as of Feb 2026)
+
+Quick snapshot of my current workflow:
+
+- **VS Code Copilot** is my daily driver (though I'm eyeing Cursor)
+- **Role prompts**: Start each chat with "assume the role of..." — keeps it focused and cuts down hallucinations (tip from a Google training)
+- **Multiple chats**: Different roles, different chats. I have a key combo to swap between them fast
+- **Small steps**: Iterate, commit often. Makes it easy to roll back when things go sideways
+- **Stack your TODOs**: Keep a running list of concerns the AI surfaces. Explore depth-first. (I'm tempted to build a shared TODO stack across chats)
+- **CLIs over MCP**: More flexible, better context. [I wrote about this](mcp%20vs%20terminal%20for%20tool%20calls.html)
+- **Share the terminal**: Let the AI see what's happening, as well as interrupt the AI and jump in to run your commands. Context is everything
+
 
