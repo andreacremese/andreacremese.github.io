@@ -22,7 +22,9 @@ Welcome to my repositiry of papers, articles, and notes exploring how foundation
 
 ## Who is Andrea Cremese?
 
-I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple roles in tech (TPM, development, SRE, on call), multipl engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I try to always think beyond the ticket. I like many things. 
+I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple roles in tech (TPM, development, SRE, on call), multipl engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I try to always think beyond the ticket
+
+*Does what is says on the tin: a NERD wth an MBA*
 
 ## Latest pages
 
@@ -41,13 +43,9 @@ I am a Staff Software Engineer, working on architectural desgin, coding best pra
 **[The Structure of the "THE"-Multiprogramming System](architectural/the-structure-of-the-multiprogramming-system.html)**  
 *Layered abstractions as a system design and verification strategy*
 
-## Who is Andrea Cremese?
-
-I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I like many things, I am a NERD with an MBA...
-
 ## Coming Up Next
 
-Review of some fundational papers:
+Review of some fundational papers haven't read in a while:
 
 ### Foundational Architecture Papers
 - **Brooks, F. P. (1975)** - *The Mythical Man-Month: Essays on Software Engineering*
@@ -60,3 +58,4 @@ Review of some fundational papers:
 ### Organizational Design
 - **Kniberg, H. (2014)** - "Spotify Engineering Culture"
 - **Westrum, R. (2004)** - "A typology of organisational cultures"
+- Squad healthcheck - Spotify (used it for a long time and it is brutal and fantastic)
