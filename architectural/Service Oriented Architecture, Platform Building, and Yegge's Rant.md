@@ -10,7 +10,7 @@ permalink: /architectural/service-oriented-architecture-platform-building-and-ye
 # Service-Oriented Architecture, Platform Building, and Yegge's Rant
 *A practical reading of Yegge's platform mandate through the lens of coordination cost, culture change, and interface discipline*
 
-Source: https://courses.cs.washington.edu/courses/cse452/23wi/papers/yegge-platform-rant.html
+Source: [The original paper has been removed, but here is a copy](https://courses.cs.washington.edu/courses/cse452/23wi/papers/yegge-platform-rant.html)
 
 ## Why This Still Matters
 
