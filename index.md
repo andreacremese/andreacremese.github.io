@@ -18,15 +18,11 @@ Welcome to my repositiry of papers, articles, and notes exploring how foundation
 - Technical debt as business risk
 - Platform engineering and developer productivity
 - AI/ML system architecture
-- Using AI sensibly as a software developer.
-
-## Who is Andrea Cremese?
-
-I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple roles in tech (TPM, development, SRE, on call), multipl engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I try to always think beyond the ticket
-
-*Does what is says on the tin: a NERD wth an MBA*
 
 ## Latest pages
+
+**[Service-Oriented Architecture, Platform Building, and Yegge's Rant – Mar 2026](architectural/service-oriented-architecture-platform-building-and-yegges-rant.html)**  
+*A practical reading of Yegge's platform mandate—why hardened interfaces are an organizational strategy for scaling velocity, lowering coordination cost, and reducing maintenance drag*
 
 **[How Do Committees Invent? – Feb 2026](architectural/how-do-committees-invent-conways-law.html)**  
 *Conway's Law and the rational case for perpetual reorganization—why your system architecture looks like your org chart, and why that matters for business outcomes*
@@ -43,13 +39,20 @@ I am a Staff Software Engineer, working on architectural desgin, coding best pra
 **[The Structure of the "THE"-Multiprogramming System](architectural/the-structure-of-the-multiprogramming-system.html)**  
 *Layered abstractions as a system design and verification strategy*
 
+## Who is Andrea Cremese?
+
+I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I like many things, I am a NERD with an MBA...
+
+
+
 ## Coming Up Next
 
-Review of some fundational papers haven't read in a while:
+Review of some fundational papers and some smaller go patterns maybe:
 
 ### Foundational Architecture Papers
 - **Brooks, F. P. (1975)** - *The Mythical Man-Month: Essays on Software Engineering*
 - **Cap Theorem** always a good one as we are on the cluod
+- **A review of serverless** look back at the flavor of the mid and late 2010s.
 
 ### Modern Applications
 - **Humble, J., & Farley, D. (2010)** - *Continuous Delivery: Reliable Software Releases*
@@ -58,4 +61,8 @@ Review of some fundational papers haven't read in a while:
 ### Organizational Design
 - **Kniberg, H. (2014)** - "Spotify Engineering Culture"
 - **Westrum, R. (2004)** - "A typology of organisational cultures"
-- Squad healthcheck - Spotify (used it for a long time and it is brutal and fantastic)
+- **Squad HealthCheck** - Spotify, how to make Retros more incisive
+
+### Go patterns
+
+- don't export interfaces but compose them

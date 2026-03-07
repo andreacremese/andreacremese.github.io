@@ -1,5 +1,3 @@
-exclude: ^vendor/
-
 repos:
   - repo: local
     hooks:

@@ -10,6 +10,9 @@ permalink: /architectural/
 A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives.
 
 ## Pages 
+### [Service-Oriented Architecture, Platform Building, and Yegge's Rant](service-oriented-architecture-platform-building-and-yegges-rant.html)
+*Key insights: Platform capability as organizational design, hardened interfaces as operating model, and cultural change as the true implementation constraint*
+
 ### [How Do Committees Invent?](how-do-committees-invent-conways-law.html)
 *Key insights: Conway's Law, homomorphism between org structure and system design, perpetual reorganization as rational optimization*
 ### [An example of encapsulation in Go: Enums for Status Disclosure](example-of-encapsulation-enums-in-golang.html)
