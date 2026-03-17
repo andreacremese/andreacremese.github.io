@@ -7,9 +7,9 @@ permalink: /
 
 # ... a nerd with an MBA
 
-Welcome to my repositiry of papers, articles, and notes exploring how foundational computer science principles translate to competitive advantage in the tech sector.
+I explore how foundational CS principles translate to business outcomes. Expect notes like: why Conway's Law matters for quarterly planning, how interface design affects coordination costs, why being in a constant reorg actually makes sense (never thought I would write that one), or what "production ready" really means at 2am.
 
-*(I really needed a place to keep my notes straight. Sunlight as the best disinfectant...)*
+*(Staff engineer. Multiple engineering disciplines inside and outside the tech industry. MBA. I write for people who need to connect code to business outcomes.)*
 
 ##  Areas/Folders
 
@@ -20,6 +20,9 @@ Welcome to my repositiry of papers, articles, and notes exploring how foundation
 - AI/ML system architecture
 
 ## Latest pages
+
+**[Serviceability Checklist for Startup Microservices – Mar 2026](architectural/serviceability-checklist.html)**  
+*Application-level readiness patterns that reduce MTTR and change failure rate—a soft checklist for production readiness from startup health checks to observability*
 
 **[Service-Oriented Architecture, Platform Building, and Yegge's Rant – Mar 2026](architectural/service-oriented-architecture-platform-building-and-yegges-rant.html)**  
 *A practical reading of Yegge's platform mandate—why hardened interfaces are an organizational strategy for scaling velocity, lowering coordination cost, and reducing maintenance drag*
@@ -38,31 +41,3 @@ Welcome to my repositiry of papers, articles, and notes exploring how foundation
 
 **[The Structure of the "THE"-Multiprogramming System](architectural/the-structure-of-the-multiprogramming-system.html)**  
 *Layered abstractions as a system design and verification strategy*
-
-## Who is Andrea Cremese?
-
-I am a Staff Software Engineer, working on architectural desgin, coding best practices, organziational arrangmeent, and ... well coding. I have a past across multiple engineering disciplines (material, structural, mechanical), as well as sales engineering, and an MBA. I like many things, I am a NERD with an MBA...
-
-
-
-## Coming Up Next
-
-Review of some fundational papers and some smaller go patterns maybe:
-
-### Foundational Architecture Papers
-- **Brooks, F. P. (1975)** - *The Mythical Man-Month: Essays on Software Engineering*
-- **Cap Theorem** always a good one as we are on the cluod
-- **A review of serverless** look back at the flavor of the mid and late 2010s.
-
-### Modern Applications
-- **Humble, J., & Farley, D. (2010)** - *Continuous Delivery: Reliable Software Releases*
-- **Boehm, B. W., & Basili, V. R. (2001)** - "Software defect reduction top 10 list"
-
-### Organizational Design
-- **Kniberg, H. (2014)** - "Spotify Engineering Culture"
-- **Westrum, R. (2004)** - "A typology of organisational cultures"
-- **Squad HealthCheck** - Spotify, how to make Retros more incisive
-
-### Go patterns
-
-- don't export interfaces but compose them

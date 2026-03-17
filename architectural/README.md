@@ -10,6 +10,9 @@ permalink: /architectural/
 A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives.
 
 ## Pages 
+### [Serviceability Checklist for Startup Microservices](serviceability-checklist.html)
+*Key insights: Production readiness costs less at design time, DORA metrics in practice, operational pain compounds silently, MTTR and change failure rate reduction through application-level patterns*
+
 ### [Service-Oriented Architecture, Platform Building, and Yegge's Rant](service-oriented-architecture-platform-building-and-yegges-rant.html)
 *Key insights: Platform capability as organizational design, hardened interfaces as operating model, and cultural change as the true implementation constraint*
 
