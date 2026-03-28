@@ -21,6 +21,9 @@ I explore how foundational CS principles translate to business outcomes. Expect 
 
 ## Latest pages
 
+**[Go Interfaces: Thoughts on Composition Over Inheritance – Mar 2026](architectural/go-interfaces.html)**
+*Who should own the contract—the producer or the consumer? Consumer-defined vs producer-defined interfaces, and why the right answer depends on the ownership boundary*
+
 **[Serviceability Checklist for Startup Microservices – Mar 2026](architectural/serviceability-checklist.html)**  
 *Application-level readiness patterns that reduce MTTR and change failure rate—a soft checklist for production readiness from startup health checks to observability*
 

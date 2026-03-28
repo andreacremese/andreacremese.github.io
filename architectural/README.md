@@ -9,7 +9,10 @@ permalink: /architectural/
 
 A collection of strategic insights on foundational software architecture papers, analyzed from both technical and business perspectives.
 
-## Pages 
+## Pages
+### [Go Interfaces: Thoughts on Composition Over Inheritance](go-interfaces.html)
+*Key insights: Implicit interface satisfaction as the deeper composition pattern, consumer-defined vs producer-defined interfaces, conditional advice based on ownership boundaries*
+
 ### [Serviceability Checklist for Startup Microservices](serviceability-checklist.html)
 *Key insights: Production readiness costs less at design time, DORA metrics in practice, operational pain compounds silently, MTTR and change failure rate reduction through application-level patterns*
 
