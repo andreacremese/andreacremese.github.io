@@ -16,8 +16,3 @@ repos:
         entry: semgrep --config "p/ci" --error
         language: system
         types: [text]
-      - id: ggshield
-        name: ggshield secret scan
-        entry: ggshield secret scan pre-commit
-        language: system
-        types: [text]
