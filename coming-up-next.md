@@ -16,6 +16,7 @@
 - **Kniberg, H. (2014)** - "Spotify Engineering Culture"
 - **Westrum, R. (2004)** - "A typology of organisational cultures"
 - **Squad HealthCheck** - Spotify, how to make Retros more incisive
+- HBR 1999 decoding the DNA of the toyota production system
 
 ## projects
 - **a local RAG**
