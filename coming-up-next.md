@@ -18,10 +18,9 @@
 - **Squad HealthCheck** - Spotify, how to make Retros more incisive
 - HBR 1999 decoding the DNA of the toyota production system
 
-## projects
-- **a local RAG**
+### One example of encoder: embedding models for a RAG
 
-## AI for developers
-- **a (not so) deep dive into the Transformer architecture** from teh 3 blue one brown
-- **BERT vs GPT** this because embeddings come up very often. Encoder vs Decoder vs the original translation. Bidirectional self attention vs causal unidirectional attention
+If you want to do a Retrieval Augmented Generation (HyDe too for example) you need to feed into the LLM (decoder) some of
+the sources for the "Augmented" part. Now, across all of your document, how do you decide what to put in? You can use a Encoder only and embed the query. So in this case the input query is transformed into a high degree vector (e.g. 3072 for text-embedding-3-large).  You encode all of your documents (in chunks likely) and run a cosine similarity (how parallel are these vectors?).
+
 

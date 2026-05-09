@@ -14,6 +14,9 @@ _Inspired by Melanie Mitchell’s “AI for Thinking Humans.”_
 
 ## Pages 
 
+### [Transformer Architecture: The Ultra Basics – May 2026](transformer_ultra_basics.html)
+A starter guide to the transformer architecture — enough to get the shape of vectorial spaces, embeddings, attention, MLP, and the encoder/decoder split
+
 ### [MCP vs Terminal Calls – Feb 2026](mcp%20vs%20terminal%20for%20tool%20calls.html)
 Context, composability, and design tradeoffs for AI tool calls
 

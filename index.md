@@ -21,6 +21,9 @@ I explore how foundational CS principles translate to business outcomes. Expect 
 
 ## Latest pages
 
+**[Transformer Architecture: The Ultra Basics – May 2026](ai/transformer_ultra_basics.html)**
+*A starter guide to the transformer architecture — enough to get the shape of vectorial spaces, embeddings, attention, MLP, and the encoder/decoder split*
+
 **[Go Interfaces: Thoughts on Composition Over Inheritance – Mar 2026](architectural/go-interfaces.html)**
 *Who should own the contract—the producer or the consumer? Consumer-defined vs producer-defined interfaces, and why the right answer depends on the ownership boundary*
 
