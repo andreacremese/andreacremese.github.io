@@ -163,7 +163,7 @@ Modern architectures split along this line (which is why the diagrams above look
 # References
 
 - [Let's build GPT: from scratch, in code, spelled out.](https://youtu.be/kCc8FmEb1nY?si=d5c2FZJV1EbQ6cc3)
-- [Visualizing transformers and attention | Talk for TNG Big Tech Day '24](https://youtu.be/KJtZARuO3JY?si=iudPcmRrikUrQfcT)
-- [Transformers, the tech behind LLMs | Deep Learning Chapter 5](https://youtu.be/wjZofJX0v4M?si=xzcfvYg1fWlI2mE-)
-- [Attention in transformers, step-by-step | Deep Learning Chapter 6](https://youtu.be/eMlx5fFNoYc?si=Db56fvGdgJqAz5WH)
-- [How might LLMs store facts | Deep Learning Chapter 7](https://youtu.be/9-Jl0dxWQs8?si=FEzs1kySv5UCs1q9)
+- [Visualizing transformers and attention - Talk for TNG Big Tech Day '24](https://youtu.be/KJtZARuO3JY?si=iudPcmRrikUrQfcT)
+- [Transformers, the tech behind LLMs - Deep Learning Chapter 5](https://youtu.be/wjZofJX0v4M?si=xzcfvYg1fWlI2mE-)
+- [Attention in transformers, step-by-step - Deep Learning Chapter 6](https://youtu.be/eMlx5fFNoYc?si=Db56fvGdgJqAz5WH)
+- [How might LLMs store facts - Deep Learning Chapter 7](https://youtu.be/9-Jl0dxWQs8?si=FEzs1kySv5UCs1q9)
