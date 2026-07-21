@@ -9,6 +9,8 @@ description: "MCPs were the flavor of the month, but is context preservation bet
 
 # Fast-Moving Patterns: MCP vs Terminal Calls
 
+> **Update — July 2026:** My thinking on this subject has evolved. This post is still relevant, but for the latest take — including new benchmark data and a reframing of when MCPs actually earn their place — see [MCP vs CLI: Stop Wrapping APIs, Start Offering Expertise](/ai/mcp_vs_cli_2026).
+
 *A lightweight, time-stamped snapshot of a moving target.*
 
 AI tooling is evolving at breakneck speed. This post is a quick, opinionated take on a question that’s come up a lot lately: should your agent use an MCP server, or just call tools via the terminal? MCPs were all the rage in 2025, but is the hype justified? Here’s what I’ve learned so far—and why this might all be outdated in a few months.

@@ -21,6 +21,9 @@ I explore how foundational CS principles translate to business outcomes. Expect 
 
 ## Latest pages
 
+**[MCP vs CLI: Stop Wrapping APIs, Start Offering Expertise – Jul 2026](ai/mcp_vs_cli_2026.html)**
+*New benchmarks show CLIs win on cost and composability—but the real insight is that MCPs become valuable when they embed domain expertise, not when they wrap your API*
+
 **[Transformer Architecture: The Ultra Basics – May 2026](ai/transformer_ultra_basics.html)**
 *A starter guide to the transformer architecture — enough to get the shape of vectorial spaces, embeddings, attention, MLP, and the encoder/decoder split*
 

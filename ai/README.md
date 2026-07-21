@@ -14,6 +14,9 @@ _Inspired by Melanie Mitchell’s “AI for Thinking Humans.”_
 
 ## Pages 
 
+### [MCP vs CLI: Stop Wrapping APIs, Start Offering Expertise – Jul 2026](mcp_vs_cli_2026.html)
+New benchmarks, an evolved take — CLIs win on cost and composability, but MCPs become valuable when they embed domain expertise rather than just wrapping your API
+
 ### [Transformer Architecture: The Ultra Basics – May 2026](transformer_ultra_basics.html)
 A starter guide to the transformer architecture — enough to get the shape of vectorial spaces, embeddings, attention, MLP, and the encoder/decoder split
 
@@ -30,12 +33,14 @@ Check back soon—new papers and ideas are always popping up. If you have though
 
 Quick snapshot of my current workflow:
 
-- **VS Code Copilot** is my daily driver (though I'm eyeing Claude becuase I like command line, and I miss nvim)
+- claude (or anything on command line), with its setup symlinked so I can version control it.
+- tmux to multiplex the terminal, have multiple chats, separate vim and the chat.
+- git worktrees to work on multiple branches concurrently
+- Usually one chat, one subject. Some skills, but not going crazy there.
+- **CLIs over MCP** (for development): More flexible, better context. [My thinking has evolved](mcp_vs_cli_2026.html) — CLIs still win for dev workflows, but MCPs earn their place when they embed real expertise
 - **Role prompts at the outset of a chat**: Start each chat with "assume the role of..." — keeps it focused and cuts down hallucinations (tip from a Google training)
-- **Multiple chats**: Different roles, different chats. I have a key combo to swap between them fast
+- stk to keep track of the discussion https://github.com/andreacremese/stk
 - **Small steps**: Iterate, commit often. Makes it easy to roll back when things go sideways
-- **Stack your TODOs**: Keep a running list of concerns the AI surfaces. Explore depth-first. (I'm tempted to build a shared TODO stack across chats)
-- **CLIs over MCP**: More flexible, better context. [I wrote about this](mcp%20vs%20terminal%20for%20tool%20calls.html)
-- **Share the terminal**: Let the AI see what's happening, as well as interrupt the AI and jump in to run your commands. Context is everything
+- **Stack your TODOs**: Keep a running list of concerns the AI surfaces. Explore depth-first. use [stk as a tool](https://github.com/andreacremese/stk)
 
 
