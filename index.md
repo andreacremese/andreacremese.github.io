@@ -15,9 +15,8 @@ I explore how foundational CS principles translate to business outcomes. Expect 
 
 - [Strategic software architecture, organizational design](architectural/)
 - [AI for thinking developers](ai/)
-- Technical debt as business risk
-- Platform engineering and developer productivity
-- AI/ML system architecture
+
+(more coming soon)
 
 ## Latest pages
 
