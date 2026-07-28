@@ -20,6 +20,9 @@ I explore how foundational CS principles translate to business outcomes. Expect 
 
 ## Latest pages
 
+**[Your Agent Experience Feels Like a Videogame? Design It Like One – Jul 2026](ai/fsm_for_ai_experiences.html)**
+*When your agent experience adds interrupts and clarifications, it stops being a DAG. Finite state machines — borrowed from game design — offer a simpler model: current phase + event = outcome*
+
 **[MCP vs CLI: Stop Wrapping APIs, Start Offering Expertise – Jul 2026](ai/mcp_vs_cli_2026.html)**
 *New benchmarks show CLIs win on cost and composability—but the real insight is that MCPs become valuable when they embed domain expertise, not when they wrap your API*
 

@@ -14,6 +14,9 @@ _Inspired by Melanie Mitchell’s “AI for Thinking Humans.”_
 
 ## Pages 
 
+### [Your Agent Experience Feels Like a Videogame? Design It Like One – Jul 2026](fsm_for_ai_experiences.html)
+When your agent experience outgrows its DAG, finite state machines — borrowed from game design — offer a simpler model: current phase + event = outcome
+
 ### [MCP vs CLI: Stop Wrapping APIs, Start Offering Expertise – Jul 2026](mcp_vs_cli_2026.html)
 New benchmarks, an evolved take — CLIs win on cost and composability, but MCPs become valuable when they embed domain expertise rather than just wrapping your API
 
